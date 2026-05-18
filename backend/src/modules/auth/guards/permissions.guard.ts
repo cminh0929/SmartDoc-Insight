@@ -39,19 +39,19 @@ export class PermissionsGuard implements CanActivate {
 
     // Resolve entityId from request parameters, body, or query string
     const entityId =
-      request.params.id ||
-      request.params.documentId ||
-      request.params.folderId ||
-      request.body.id ||
-      request.body.documentId ||
-      request.body.folderId ||
-      request.query.folderId ||
-      request.query.documentId;
+      request.params?.id ||
+      request.params?.documentId ||
+      request.params?.folderId ||
+      request.body?.id ||
+      request.body?.documentId ||
+      request.body?.folderId ||
+      request.query?.folderId ||
+      request.query?.documentId;
 
     if (!entityId) {
       // If we are creating a folder, check write permission on parentId if provided
       if (entityType === 'folder' && level === 'write') {
-        const parentId = request.body.parentId;
+        const parentId = request.body?.parentId;
         if (!parentId) {
           // Creating a root folder. Allow Admin and Staff, deny Intern.
           return user.role === 'admin' || user.role === 'staff';
@@ -67,7 +67,7 @@ export class PermissionsGuard implements CanActivate {
 
       // If we are uploading a document, check write permission on folderId if provided
       if (entityType === 'document' && level === 'write') {
-        const folderId = request.body.folderId;
+        const folderId = request.body?.folderId;
         if (!folderId) {
           // Uploading to root. Allow Admin and Staff, deny Intern.
           return user.role === 'admin' || user.role === 'staff';

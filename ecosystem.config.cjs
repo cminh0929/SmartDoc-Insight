@@ -1,6 +1,13 @@
 module.exports = {
   apps: [
     {
+      name: "smartdoc-meilisearch-7700",
+      cwd: ".",
+      script: "./meilisearch.exe",
+      args: "--db-path ./data.ms --master-key it_support_master_key",
+      watch: false
+    },
+    {
       name: "smartdoc-backend-3001",
       cwd: "./backend",
       script: "dist/main.js",
