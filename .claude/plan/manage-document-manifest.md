@@ -10,9 +10,9 @@ Thiết lập một "Bản đồ dự án" động để theo dõi tiến độ,
 
 #### 1. Nhật ký tiến độ (Process Log)
 
-- **Current Status**: Giai đoạn 7 hoàn tất. Hệ thống Phân quyền (Permissions System) đã hoạt động chính xác.
-- **Last Action**: Tích hợp PermissionsGuard (BE) bảo vệ Documents/Folders và tích hợp sharing modal glassmorphic (FE).
-- **Next Action**: [Giai đoạn 8] Tối ưu hóa UI/UX toàn diện, thực thi các kiểm thử tải và bảo mật.
+- **Current Status**: Giai đoạn 8 hoàn tất tốt đẹp. Dự án được tối ưu hóa UI/UX toàn diện và tích hợp script bảo mật tự động.
+- **Last Action**: Tích hợp nút Dark Mode Toggle vào Header, sửa lỗi liên kết Recent Docs, và thêm tệp script tự động `backend/scripts/security-load-test.js` tích hợp dưới lệnh `npm run test:security`.
+- **Next Action**: Dự án đã hoàn thành 100% xuất sắc, sẵn sàng bàn giao vận hành!
 
 #### 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 

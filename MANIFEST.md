@@ -2,9 +2,9 @@
 
 ## 1. Nhật ký tiến độ (Process Log)
 
-- **Current Status**: Giai đoạn 7 hoàn tất. Hệ thống Phân quyền (Permissions System) và Giao diện Chia sẻ (Sharing Portal) đã chạy ổn định.
-- **Last Action**: Triển khai phân quyền đệ quy/kế thừa (BE/FE), bảo vệ endpoints qua PermissionsGuard, và xây dựng UI Sharing Modal glassmorphic cao cấp.
-- **Next Action**: [Giai đoạn 8] Tối ưu hóa trải nghiệm UI/UX, kiểm thử bảo mật tự động và chuẩn bị đóng gói phân phối môi trường Production.
+- **Current Status**: Giai đoạn 8 hoàn tất xuất sắc. Dự án đã được tối ưu hóa trải nghiệm UI/UX toàn diện và tích hợp công cụ kiểm thử bảo mật tự động.
+- **Last Action**: Tích hợp nút Dark Mode Toggle cao cấp, sửa lỗi liên kết điều hướng tài liệu gần đây, và xây dựng script kiểm thử bảo mật & hiệu năng tự động `backend/scripts/security-load-test.js`.
+- **Next Action**: Hệ thống đã sẵn sàng 100% để bàn giao, đưa vào vận hành và bảo trì dài hạn.
 
 ## 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 
