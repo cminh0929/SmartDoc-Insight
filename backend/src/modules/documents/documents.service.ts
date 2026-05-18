@@ -89,6 +89,7 @@ export class DocumentsService extends BaseService<
       description?: string;
       folderId?: string;
       ownerId: string;
+      tagIds?: string[];
     },
     file: Express.Multer.File,
   ) {
@@ -98,7 +99,10 @@ export class DocumentsService extends BaseService<
         const results = (await tx
           .insert(documents)
           .values({
-            ...data,
+            title: data.title,
+            description: data.description,
+            folderId: data.folderId,
+            ownerId: data.ownerId,
             createdAt: new Date(),
             updatedAt: new Date(),
           })
@@ -106,16 +110,25 @@ export class DocumentsService extends BaseService<
 
         const doc = results[0];
 
-        // 2. Create first version
+        // 2. Insert tags associations
+        if (data.tagIds && data.tagIds.length > 0) {
+          const docTagsValues = data.tagIds.map((tagId) => ({
+            documentId: doc.id,
+            tagId,
+          }));
+          await tx.insert(schema.documentTags).values(docTagsValues);
+        }
+
+        // 3. Create first version
         await this.addVersion(doc.id, file, data.ownerId);
 
         return doc;
       });
 
-      // 3. Sync to Meilisearch
+      // 4. Sync to Meilisearch
       await this.searchService.addOrUpdateDocument(doc);
 
-      // 4. Log action
+      // 5. Log action
       await this.auditLogsService.log({
         userId: data.ownerId,
         action: 'CREATE_DOCUMENT',
@@ -128,6 +141,105 @@ export class DocumentsService extends BaseService<
     } catch (error: any) {
       throw new InternalServerErrorException(
         `Failed to create document: ${error.message}`,
+      );
+    }
+  }
+
+  async findOneWithTags(id: string) {
+    const doc = await this.findOne(id);
+    const tagsAssoc = await this.db
+      .select({
+        id: schema.tags.id,
+        name: schema.tags.name,
+      })
+      .from(schema.documentTags)
+      .innerJoin(schema.tags, eq(schema.documentTags.tagId, schema.tags.id))
+      .where(eq(schema.documentTags.documentId, id));
+
+    return {
+      ...doc,
+      tags: tagsAssoc,
+    };
+  }
+
+  async findAllWithTags(folderId?: string) {
+    const query = this.db
+      .select({
+        document: documents,
+        tag: schema.tags,
+      })
+      .from(documents)
+      .leftJoin(
+        schema.documentTags,
+        eq(documents.id, schema.documentTags.documentId),
+      )
+      .leftJoin(schema.tags, eq(schema.documentTags.tagId, schema.tags.id));
+
+    if (folderId) {
+      query.where(eq(documents.folderId, folderId));
+    }
+
+    const rows = await query;
+
+    // Group by document ID
+    const docMap = new Map<string, any>();
+    for (const row of rows) {
+      const docId = row.document.id;
+      if (!docMap.has(docId)) {
+        docMap.set(docId, {
+          ...row.document,
+          tags: [],
+        });
+      }
+      if (row.tag) {
+        docMap.get(docId).tags.push(row.tag);
+      }
+    }
+
+    return Array.from(docMap.values());
+  }
+
+  async updateDocumentTags(
+    documentId: string,
+    tagIds: string[],
+    userId: string,
+  ) {
+    try {
+      await this.db.transaction(async (tx) => {
+        // 1. Delete existing associations
+        await tx
+          .delete(schema.documentTags)
+          .where(eq(schema.documentTags.documentId, documentId));
+
+        // 2. Insert new associations
+        if (tagIds && tagIds.length > 0) {
+          const docTagsValues = tagIds.map((tagId) => ({
+            documentId,
+            tagId,
+          }));
+          await tx.insert(schema.documentTags).values(docTagsValues);
+        }
+
+        // 3. Update document's updatedAt
+        await tx
+          .update(documents)
+          .set({ updatedAt: new Date() })
+          .where(eq(documents.id, documentId));
+      });
+
+      // Log action
+      await this.auditLogsService.log({
+        userId,
+        action: 'UPDATE_DOCUMENT_TAGS',
+        entityType: 'document',
+        entityId: documentId,
+        details: `Updated tags for document ID: ${documentId}`,
+      });
+
+      return this.findOneWithTags(documentId);
+    } catch (error: any) {
+      throw new InternalServerErrorException(
+        `Failed to update document tags: ${error.message}`,
       );
     }
   }

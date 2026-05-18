@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Upload, X, FileText, Loader2 } from "lucide-react"
+import { Upload, X, FileText, Loader2, Plus } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { documentsApi } from "@/lib/api"
+import { documentsApi, tagsApi } from "@/lib/api"
+import { useAuth } from "@/context/auth-context"
+import { cn } from "@/lib/utils"
 
 interface UploadDocumentModalProps {
   isOpen: boolean
@@ -27,11 +29,49 @@ export function UploadDocumentModal({
   onClose,
   onSuccess,
 }: UploadDocumentModalProps) {
+  const { user } = useAuth()
   const [file, setFile] = React.useState<File | null>(null)
   const [title, setTitle] = React.useState("")
   const [description, setDescription] = React.useState("")
+  const [availableTags, setAvailableTags] = React.useState<any[]>([])
+  const [selectedTagIds, setSelectedTagIds] = React.useState<string[]>([])
+  const [newTagName, setNewTagName] = React.useState("")
   const [isUploading, setIsUploading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (isOpen) {
+      loadTags()
+    }
+  }, [isOpen])
+
+  const loadTags = async () => {
+    try {
+      const tags = await tagsApi.getAll()
+      setAvailableTags(tags)
+    } catch (err) {
+      console.error("Failed to load tags:", err)
+    }
+  }
+
+  const handleCreateTag = async () => {
+    if (!newTagName.trim()) return
+    try {
+      setError(null)
+      const tag = await tagsApi.create(newTagName.trim())
+      setAvailableTags(prev => [...prev, tag])
+      setSelectedTagIds(prev => [...prev, tag.id])
+      setNewTagName("")
+    } catch (err: any) {
+      setError(err.message || "Failed to create tag.")
+    }
+  }
+
+  const toggleTag = (tagId: string) => {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
+    )
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -59,8 +99,10 @@ export function UploadDocumentModal({
       formData.append("file", file)
       formData.append("title", title)
       formData.append("description", description)
-      // Mocking ownerId for now
-      formData.append("ownerId", "00000000-0000-0000-0000-000000000000")
+      formData.append("ownerId", user?.id || "00000000-0000-0000-0000-000000000000")
+      if (selectedTagIds.length > 0) {
+        formData.append("tagIds", JSON.stringify(selectedTagIds))
+      }
 
       await documentsApi.create(formData)
       
@@ -77,6 +119,8 @@ export function UploadDocumentModal({
     setFile(null)
     setTitle("")
     setDescription("")
+    setSelectedTagIds([])
+    setNewTagName("")
     setError(null)
     onClose()
   }
@@ -104,7 +148,7 @@ export function UploadDocumentModal({
                   <button 
                     type="button" 
                     onClick={() => setFile(null)}
-                    className="text-muted-foreground hover:text-destructive"
+                    className="text-muted-foreground hover:text-destructive animate-fade-in"
                   >
                     <X size={16} />
                   </button>
@@ -143,8 +187,62 @@ export function UploadDocumentModal({
                 onChange={(e) => setDescription(e.target.value)} 
                 placeholder="Brief summary of the document"
                 className="resize-none"
-                rows={3}
+                rows={2}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Tags</Label>
+              <div className="flex flex-wrap gap-1.5 p-2 border rounded-lg bg-card min-h-[44px]">
+                {availableTags.length === 0 ? (
+                  <span className="text-xs text-muted-foreground italic">No tags available.</span>
+                ) : (
+                  availableTags.map((tag) => {
+                    const isSelected = selectedTagIds.includes(tag.id)
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.id)}
+                        className={cn(
+                          "px-2 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer select-none",
+                          isSelected
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm scale-102"
+                            : "bg-muted/50 hover:bg-muted text-muted-foreground border-transparent"
+                        )}
+                      >
+                        {tag.name}
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+              
+              {(user?.role === 'admin' || user?.role === 'staff') && (
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    placeholder="New tag name..."
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    className="h-8 text-xs flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleCreateTag()
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 text-xs px-3 flex items-center gap-1 shrink-0"
+                    onClick={handleCreateTag}
+                  >
+                    <Plus size={12} />
+                    Add Tag
+                  </Button>
+                </div>
+              )}
             </div>
 
             {error && (

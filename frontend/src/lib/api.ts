@@ -74,6 +74,10 @@ export const documentsApi = {
     });
   },
   getVersions: (id: string) => apiFetch<any[]>(`/documents/${id}/versions`),
+  updateTags: (id: string, tagIds: string[]) => apiFetch<any>(`/documents/${id}/tags`, {
+    method: 'PUT',
+    body: JSON.stringify({ tagIds }),
+  }),
 };
 
 export const foldersApi = {
@@ -81,6 +85,15 @@ export const foldersApi = {
   getTree: () => apiFetch<any[]>('/folders/tree'),
   create: (data: any) => apiFetch('/folders', { method: 'POST', body: JSON.stringify(data) }),
   delete: (id: string) => apiFetch(`/folders/${id}`, { method: 'DELETE' }),
+};
+
+export const tagsApi = {
+  getAll: () => apiFetch<any[]>('/tags'),
+  create: (name: string) => apiFetch<any>('/tags', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  }),
+  delete: (id: string) => apiFetch<any>(`/tags/${id}`, { method: 'DELETE' }),
 };
 
 export const searchApi = {
@@ -98,4 +111,22 @@ export const dashboardApi = {
 export const auditLogsApi = {
   getAll: (limit = 100, offset = 0) => apiFetch<any[]>(`/audit-logs?limit=${limit}&offset=${offset}`),
   exportUrl: () => `${API_BASE_URL}/audit-logs/export`,
+};
+
+export const usersApi = {
+  getAll: () => apiFetch<any[]>('/auth/users'),
+};
+
+export const permissionsApi = {
+  getByDocument: (documentId: string) => apiFetch<any[]>(`/permissions/document/${documentId}`),
+  getByFolder: (folderId: string) => apiFetch<any[]>(`/permissions/folder/${folderId}`),
+  grant: (data: { userId: string; documentId?: string; folderId?: string; level: 'read' | 'write' | 'admin' }) =>
+    apiFetch<any>('/permissions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  revoke: (id: string) =>
+    apiFetch<void>(`/permissions/${id}`, {
+      method: 'DELETE',
+    }),
 };

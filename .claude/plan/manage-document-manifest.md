@@ -10,16 +10,16 @@ Thiết lập một "Bản đồ dự án" động để theo dõi tiến độ,
 
 #### 1. Nhật ký tiến độ (Process Log)
 
-- **Current Status**: Đang ở giai đoạn "Planning & Setup".
-- **Last Action**: Đã hoàn thiện hệ thống 7 bản kế hoạch liên kết.
-- **Next Action**: Thực thi Master Plan để khởi tạo hạ tầng.
+- **Current Status**: Giai đoạn 7 hoàn tất. Hệ thống Phân quyền (Permissions System) đã hoạt động chính xác.
+- **Last Action**: Tích hợp PermissionsGuard (BE) bảo vệ Documents/Folders và tích hợp sharing modal glassmorphic (FE).
+- **Next Action**: [Giai đoạn 8] Tối ưu hóa UI/UX toàn diện, thực thi các kiểm thử tải và bảo mật.
 
 #### 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 
-- `backend/src/modules/`: Chứa các Business Logic tách biệt (Storage, Search, Auth).
+- `backend/src/modules/`: Chứa các Business Logic tách biệt (Storage, Search, Auth, Dashboard, Audit Logs, Permissions, Tags).
 - `backend/src/common/`: Chứa các Base Classes, Interfaces dùng chung (tránh viết lại logic).
-- `frontend/src/components/`: Chia nhỏ thành UI (nguyên tử) và Modules (phức hợp).
-- `shared/`: Chứa Zod Schemas và Types dùng chung cho cả Front và Back.
+- `frontend/src/components/`: Chia nhỏ thành UI (nguyên tử) và Modules (phức hợp: Documents, Folders, Dashboard, Permissions).
+- `shared/`: Chứa Zod Schemas và Types dùng chung cho cả Front và Back (bao gồm Audit Logs, Permissions, Tags).
 
 #### 3. Quy tắc chống trùng lặp (Anti-Redundancy Rules)
 

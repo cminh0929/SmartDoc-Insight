@@ -173,7 +173,7 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <Link 
-                            href={`/documents?folderId=${doc.id}`}
+                            href={doc.folderId ? `/documents?folderId=${doc.folderId}` : `/documents`}
                             className="text-primary hover:bg-primary/10 p-2 rounded-lg inline-flex transition-colors"
                           >
                             <ChevronRight size={18} />

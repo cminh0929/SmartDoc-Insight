@@ -103,4 +103,15 @@ export class AuthService {
 
     return user || null;
   }
+
+  async getAllUsers() {
+    return this.db
+      .select({
+        id: users.id,
+        email: users.email,
+        fullName: users.fullName,
+        role: users.role,
+      })
+      .from(users);
+  }
 }

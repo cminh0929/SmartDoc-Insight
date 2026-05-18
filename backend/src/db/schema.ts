@@ -100,3 +100,25 @@ export const auditLogs = pgTable('audit_logs', {
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const permissionLevelEnum = pgEnum('permission_level', [
+  'read',
+  'write',
+  'admin',
+]);
+
+export const permissions = pgTable('permissions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  documentId: uuid('document_id').references(() => documents.id, {
+    onDelete: 'cascade',
+  }),
+  folderId: uuid('folder_id').references(() => folders.id, {
+    onDelete: 'cascade',
+  }),
+  level: permissionLevelEnum('level').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

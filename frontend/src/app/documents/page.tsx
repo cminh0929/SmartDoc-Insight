@@ -10,9 +10,10 @@ import {
   Download, 
   Trash2,
   FileIcon,
-  Filter
+  Filter,
+  Tag as TagIcon
 } from "lucide-react"
-import { documentsApi } from "@/lib/api"
+import { documentsApi, tagsApi } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { UploadDocumentModal } from "@/components/modules/documents/upload-modal"
 import { DocumentDetailsModal } from "@/components/modules/documents/details-modal"
@@ -22,6 +23,8 @@ function DocumentsContent() {
   const folderId = searchParams.get('folderId')
   
   const [documents, setDocuments] = useState<any[]>([])
+  const [tags, setTags] = useState<any[]>([])
+  const [selectedFilterTagId, setSelectedFilterTagId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -31,6 +34,7 @@ function DocumentsContent() {
 
   useEffect(() => {
     loadDocuments()
+    loadTags()
   }, [folderId])
 
   const loadDocuments = async () => {
@@ -46,6 +50,15 @@ function DocumentsContent() {
     }
   }
 
+  const loadTags = async () => {
+    try {
+      const data = await tagsApi.getAll()
+      setTags(data)
+    } catch (err) {
+      console.error("Failed to load tags:", err)
+    }
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this document?")) return
     
@@ -57,10 +70,14 @@ function DocumentsContent() {
     }
   }
 
-  const filteredDocs = documents.filter(doc => 
-    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredDocs = documents.filter(doc => {
+    const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesTag = !selectedFilterTagId || (doc.tags && doc.tags.some((t: any) => t.id === selectedFilterTagId))
+    
+    return matchesSearch && matchesTag
+  })
 
   return (
     <div className="space-y-6">
@@ -79,6 +96,42 @@ function DocumentsContent() {
           </button>
         </div>
       </div>
+
+      {/* Horizontal Tag Filters */}
+      {tags.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-accent/20">
+          <TagIcon size={14} className="text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground font-medium shrink-0">Filter by Tag:</span>
+          <button
+            onClick={() => setSelectedFilterTagId(null)}
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer shrink-0 select-none",
+              !selectedFilterTagId
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-card hover:bg-accent text-muted-foreground border-transparent"
+            )}
+          >
+            All
+          </button>
+          {tags.map((tag) => {
+            const isSelected = selectedFilterTagId === tag.id
+            return (
+              <button
+                key={tag.id}
+                onClick={() => setSelectedFilterTagId(isSelected ? null : tag.id)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer shrink-0 select-none",
+                  isSelected
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-card hover:bg-accent text-muted-foreground border-muted-foreground/10"
+                )}
+              >
+                {tag.name}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
         <div className="relative w-full md:max-w-md">
@@ -126,10 +179,10 @@ function DocumentsContent() {
           <div>
             <h3 className="text-lg font-semibold">No documents found</h3>
             <p className="text-muted-foreground max-w-xs mx-auto mt-1">
-              {searchQuery ? `No results for "${searchQuery}". Try a different search term.` : "Start by uploading your first document to the system."}
+              {searchQuery || selectedFilterTagId ? `No results found. Try clearing filters.` : "Start by uploading your first document to the system."}
             </p>
           </div>
-          {!searchQuery && (
+          {!searchQuery && !selectedFilterTagId && (
             <button 
               onClick={() => setIsUploadModalOpen(true)}
               className="text-primary font-medium hover:underline flex items-center gap-2 mx-auto"
@@ -140,7 +193,7 @@ function DocumentsContent() {
           )}
         </div>
       ) : (
-        <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+        <div className="bg-card rounded-xl border shadow-sm overflow-hidden animate-fade-in">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -163,13 +216,25 @@ function DocumentsContent() {
                     }}
                   >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-blue-100 text-blue-600 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-blue-100 text-blue-600 p-2 rounded-lg group-hover:scale-110 transition-all mt-0.5">
                           <FileText size={20} />
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{doc.title}</p>
                           <p className="text-xs text-muted-foreground line-clamp-1 max-w-xs">{doc.description || "No description"}</p>
+                          {doc.tags && doc.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {doc.tags.map((tag: any) => (
+                                <span 
+                                  key={tag.id} 
+                                  className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/10 shadow-xs"
+                                >
+                                  {tag.name}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -181,7 +246,7 @@ function DocumentsContent() {
                         {doc.isArchived ? "Archived" : "Active"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                    <td className="px-6 py-4 text-sm text-muted-foreground whitespace-nowrap">
                       {new Date(doc.updatedAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
@@ -225,7 +290,10 @@ function DocumentsContent() {
       <UploadDocumentModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)} 
-        onSuccess={loadDocuments} 
+        onSuccess={() => {
+          loadDocuments()
+          loadTags()
+        }} 
       />
 
       <DocumentDetailsModal 
@@ -234,7 +302,10 @@ function DocumentsContent() {
         onClose={() => {
           setIsDetailsModalOpen(false)
           setSelectedDoc(null)
-          loadDocuments() // Refresh in case a new version was uploaded
+        }}
+        onTagsUpdated={() => {
+          loadDocuments()
+          loadTags()
         }}
       />
     </div>

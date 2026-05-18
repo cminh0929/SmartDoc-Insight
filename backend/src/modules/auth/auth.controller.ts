@@ -28,4 +28,10 @@ export class AuthController {
   getProfile(@Request() req: any) {
     return req.user;
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('users')
+  async getUsers() {
+    return this.authService.getAllUsers();
+  }
 }

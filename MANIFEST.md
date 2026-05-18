@@ -2,9 +2,9 @@
 
 ## 1. Nhật ký tiến độ (Process Log)
 
-- **Current Status**: Giai đoạn 6 hoàn tất. Bắt đầu Giai đoạn 7 (Tính năng nâng cao: Tags, Permissions).
-- **Last Action**: Triển khai hệ thống Audit Logs toàn diện (BE/FE) và tính năng xuất báo cáo CSV cho quản trị viên.
-- **Next Action**: [Giai đoạn 7] Triển khai hệ thống Gán nhãn (Tags), Phân quyền tài liệu (Document Permissions) và Quản lý phiên bản nâng cao.
+- **Current Status**: Giai đoạn 7 hoàn tất. Hệ thống Phân quyền (Permissions System) và Giao diện Chia sẻ (Sharing Portal) đã chạy ổn định.
+- **Last Action**: Triển khai phân quyền đệ quy/kế thừa (BE/FE), bảo vệ endpoints qua PermissionsGuard, và xây dựng UI Sharing Modal glassmorphic cao cấp.
+- **Next Action**: [Giai đoạn 8] Tối ưu hóa trải nghiệm UI/UX, kiểm thử bảo mật tự động và chuẩn bị đóng gói phân phối môi trường Production.
 
 ## 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 
@@ -12,18 +12,18 @@
 
 - `src/db/`: Chứa `schema.ts` và `database.module.ts` (Drizzle ORM).
 - `src/common/`: Chứa `BaseService`, `StorageService` (Local FS).
-- `src/modules/`: Chứa `DocumentsModule`, `SearchModule`, `FoldersModule`, `AuthModule`, `DashboardModule`, `AuditLogsModule`.
+- `src/modules/`: Chứa `DocumentsModule`, `SearchModule`, `FoldersModule`, `AuthModule`, `DashboardModule`, `AuditLogsModule`, `PermissionsModule`, `TagsModule`.
 - `drizzle.config.ts`: Cấu hình kết nối và migration DB.
 
 ### Frontend (`/frontend`)
 
 - `src/app/`: Next.js App Router (Layout & Pages).
-- `src/components/`: Chứa `layout/` (Sidebar, Header), `modules/` (Documents, Folders, Dashboard) và `ui/` (Shadcn).
+- `src/components/`: Chứa `layout/` (Sidebar, Header), `modules/` (Documents, Folders, Dashboard, Permissions) và `ui/` (Shadcn).
 - `src/lib/`: Chứa các hàm tiện ích (`utils.ts`, `api.ts`).
 
 ### Shared (`/shared`)
 
-- `index.ts`: Các Schema (Zod) và Types dùng chung.
+- `index.ts`: Các Schema (Zod) và Types dùng chung (bao gồm Audit Logs, Permissions, Tags).
 
 ## 3. Quy tắc chống trùng lặp (Anti-Redundancy Rules)
 

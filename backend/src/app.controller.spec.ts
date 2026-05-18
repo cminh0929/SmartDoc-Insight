@@ -15,8 +15,10 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return "IT Support Document Management API is running!"', () => {
+      expect(appController.getHello()).toBe(
+        'IT Support Document Management API is running!',
+      );
     });
   });
 });

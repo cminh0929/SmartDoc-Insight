@@ -9,6 +9,8 @@ import { FoldersModule } from './modules/folders/folders.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { TagsModule } from './modules/tags/tags.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
     AuthModule,
     DashboardModule,
     AuditLogsModule,
+    TagsModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

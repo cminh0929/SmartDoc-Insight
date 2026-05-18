@@ -10,14 +10,15 @@ import {
   Search, 
   Settings, 
   LayoutDashboard,
-  ShieldCheck,
   History,
   ChevronRight,
   ChevronDown,
-  Plus
+  Plus,
+  Share2
 } from "lucide-react"
 import { foldersApi } from "@/lib/api"
 import { CreateFolderModal } from "@/components/modules/folders/create-modal"
+import { PermissionsModal } from "@/components/modules/permissions/permissions-modal"
 import { useAuth } from "@/context/auth-context"
 import { LogOut } from "lucide-react"
 
@@ -35,6 +36,10 @@ export function Sidebar() {
   const [loading, setLoading] = React.useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false)
   const [selectedParentId, setSelectedParentId] = React.useState<string | null>(null)
+  
+  // Folder sharing states
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
+  const [shareFolderData, setShareFolderData] = React.useState<{ id: string; name: string } | null>(null)
 
   const { user, logout } = useAuth()
 
@@ -51,6 +56,11 @@ export function Sidebar() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleShareFolder = (id: string, name: string) => {
+    setShareFolderData({ id, name })
+    setIsShareModalOpen(true)
   }
 
   return (
@@ -111,6 +121,7 @@ export function Sidebar() {
                     setSelectedParentId(id)
                     setIsCreateModalOpen(true)
                   }}
+                  onShareFolder={handleShareFolder}
                 />
               ))
             )}
@@ -145,6 +156,19 @@ export function Sidebar() {
         onSuccess={loadFolders}
         parentId={selectedParentId}
       />
+
+      {shareFolderData && (
+        <PermissionsModal
+          isOpen={isShareModalOpen}
+          onClose={() => {
+            setIsShareModalOpen(false)
+            setShareFolderData(null)
+          }}
+          entityId={shareFolderData.id}
+          entityType="folder"
+          entityTitle={shareFolderData.name}
+        />
+      )}
     </div>
   )
 }
@@ -152,11 +176,13 @@ export function Sidebar() {
 function FolderItem({ 
   folder, 
   level, 
-  onCreateSubfolder 
+  onCreateSubfolder,
+  onShareFolder
 }: { 
   folder: any; 
   level: number;
-  onCreateSubfolder: (id: string) => void
+  onCreateSubfolder: (id: string) => void;
+  onShareFolder: (id: string, name: string) => void;
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -165,6 +191,7 @@ function FolderItem({
   
   const [isOpen, setIsOpen] = React.useState(false)
   const hasChildren = folder.children && folder.children.length > 0
+  const { user } = useAuth()
 
   const handleFolderClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -201,16 +228,30 @@ function FolderItem({
           <span className="truncate">{folder.name}</span>
         </div>
         
-        <button 
-          onClick={(e) => {
-            e.stopPropagation()
-            onCreateSubfolder(folder.id)
-          }}
-          className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-accent-foreground/10 rounded transition-all"
-          title="Create sub-folder"
-        >
-          <Plus size={12} />
-        </button>
+        <div className="flex items-center gap-1">
+          {(user?.role === 'admin' || user?.role === 'staff') && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation()
+                onShareFolder(folder.id, folder.name)
+              }}
+              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-accent-foreground/10 rounded transition-all"
+              title="Share folder"
+            >
+              <Share2 size={12} />
+            </button>
+          )}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation()
+              onCreateSubfolder(folder.id)
+            }}
+            className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-accent-foreground/10 rounded transition-all"
+            title="Create sub-folder"
+          >
+            <Plus size={12} />
+          </button>
+        </div>
       </div>
       
       {isOpen && hasChildren && (
@@ -221,6 +262,7 @@ function FolderItem({
               folder={child} 
               level={level + 1} 
               onCreateSubfolder={onCreateSubfolder}
+              onShareFolder={onShareFolder}
             />
           ))}
         </div>
