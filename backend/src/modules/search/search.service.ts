@@ -26,6 +26,16 @@ export class SearchService implements OnModuleInit {
   async onModuleInit() {
     // Initialize index settings
     try {
+      // Ensure the index exists with an explicit primary key
+      try {
+        await this.client.createIndex('documents', { primaryKey: 'id' });
+      } catch (e: any) {
+        // If the index already exists, that is expected. Otherwise, rethrow.
+        if (e.code !== 'index_already_exists') {
+          throw e;
+        }
+      }
+
       this.documentIndex = this.client.index('documents');
       await this.documentIndex.updateSettings({
         searchableAttributes: ['title', 'description'],
