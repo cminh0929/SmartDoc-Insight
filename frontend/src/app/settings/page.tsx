@@ -22,7 +22,10 @@ import {
   FolderPlus,
   FileUp,
   History,
-  Share2
+  Share2,
+  Building2,
+  Copy,
+  Hash
 } from "lucide-react"
 
 interface Role {
@@ -56,7 +59,23 @@ export default function SettingsPage() {
   const [successMsg, setSuccessMsg] = React.useState<string | null>(null)
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
 
+  const [workspaceInfo, setWorkspaceInfo] = React.useState<any>(null)
+
   const showRolesTab = user?.role === "admin" || user?.role === "staff" || user?.role === "IT Manager"
+
+  const fetchWorkspace = React.useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:3001/tenants/my-workspace", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setWorkspaceInfo(data)
+      }
+    } catch (err) {
+      console.error("Failed to fetch workspace:", err)
+    }
+  }, [token])
 
   const fetchRoles = React.useCallback(async () => {
     setLoadingRoles(true)
@@ -76,8 +95,10 @@ export default function SettingsPage() {
   React.useEffect(() => {
     if (activeTab === "roles") {
       fetchRoles()
+    } else if (activeTab === "profile" && token) {
+      fetchWorkspace()
     }
-  }, [activeTab, fetchRoles])
+  }, [activeTab, fetchRoles, fetchWorkspace, token])
 
   // Clear notifications after 4 seconds
   React.useEffect(() => {
@@ -303,6 +324,64 @@ export default function SettingsPage() {
 
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12" />
             </div>
+
+            {/* Workspace Enterprise Panel */}
+            {workspaceInfo && (
+              <div className="bg-card rounded-2xl border p-6 hover:shadow-md transition-all">
+                <div className="flex items-center justify-between border-b pb-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <Building2 className="text-primary" size={22} />
+                    <h2 className="font-bold text-lg">Enterprise Workspace</h2>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">
+                      Organization Name
+                    </label>
+                    <div className="bg-accent/40 px-4 py-2.5 rounded-xl text-sm font-semibold">
+                      {workspaceInfo.workspace.name}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">
+                      Invite Code
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-primary/10 text-primary border border-primary/20 px-4 py-2.5 rounded-xl text-sm font-bold tracking-widest flex items-center gap-2 w-full">
+                        <Hash size={16} />
+                        {workspaceInfo.workspace.tenantCode}
+                      </div>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(workspaceInfo.workspace.tenantCode)
+                          setSuccessMsg("Invite code copied!")
+                        }}
+                        className="bg-accent hover:bg-accent/80 p-3 rounded-xl transition-all"
+                        title="Copy Code"
+                      >
+                        <Copy size={18} />
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1.5">
+                      Share this code for employees to join your organization.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">
+                      Active Roster
+                    </label>
+                    <div className="bg-accent/40 px-4 py-2.5 rounded-xl text-sm font-semibold flex justify-between items-center">
+                      <span>{workspaceInfo.employees?.length || 0} Employees Enrolled</span>
+                      <Users size={16} className="text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Aesthetic Preferences */}
             <div className="bg-card rounded-2xl border p-6 hover:shadow-md transition-all">

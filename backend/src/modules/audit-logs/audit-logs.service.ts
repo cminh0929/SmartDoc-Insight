@@ -23,17 +23,38 @@ export class AuditLogsService extends BaseService<any> {
     details?: string;
     ipAddress?: string;
     userAgent?: string;
+    tenantId?: string;
   }) {
+    let finalTenantId = data.tenantId;
+
+    if (!finalTenantId && data.userId) {
+      const userList = await this.dbConn
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, data.userId))
+        .limit(1);
+      if (userList.length > 0) {
+        finalTenantId = userList[0].tenantId ?? undefined;
+      }
+    }
+
     return this.dbConn
       .insert(auditLogs)
       .values({
-        ...data,
+        userId: data.userId,
+        action: data.action,
+        entityType: data.entityType,
+        entityId: data.entityId,
+        details: data.details,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        tenantId: finalTenantId,
         createdAt: new Date(),
       })
       .returning();
   }
 
-  async findAllLogs(limit = 100, offset = 0) {
+  async findAllLogs(tenantId: string, limit = 100, offset = 0) {
     return this.dbConn
       .select({
         id: auditLogs.id,
@@ -52,13 +73,14 @@ export class AuditLogsService extends BaseService<any> {
       })
       .from(auditLogs)
       .leftJoin(schema.users, eq(auditLogs.userId, schema.users.id))
+      .where(eq(auditLogs.tenantId, tenantId))
       .orderBy(desc(auditLogs.createdAt))
       .limit(limit)
       .offset(offset);
   }
 
-  async exportLogs() {
-    const logs = await this.findAllLogs(1000, 0);
+  async exportLogs(tenantId: string) {
+    const logs = await this.findAllLogs(tenantId, 1000, 0);
     const fields = [
       'id',
       'action',

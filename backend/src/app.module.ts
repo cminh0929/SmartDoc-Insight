@@ -12,6 +12,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { TenantsModule } from './modules/tenants/tenants.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { RolesModule } from './modules/roles/roles.module';
     TagsModule,
     PermissionsModule,
     RolesModule,
+    TenantsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

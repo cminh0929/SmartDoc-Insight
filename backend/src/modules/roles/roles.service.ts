@@ -1,4 +1,9 @@
-import { Injectable, Inject, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
 import { roles } from '../../db/schema';
@@ -12,10 +17,7 @@ export class RolesService {
   ) {}
 
   async findAll() {
-    return this.db
-      .select()
-      .from(roles)
-      .orderBy(roles.name);
+    return this.db.select().from(roles).orderBy(roles.name);
   }
 
   async findByName(name: string) {
@@ -28,7 +30,14 @@ export class RolesService {
   }
 
   async create(data: any) {
-    const { name, description, canCreateRootFolders, canUploadRootDocs, canViewAuditLogs, canManageSharing } = data;
+    const {
+      name,
+      description,
+      canCreateRootFolders,
+      canUploadRootDocs,
+      canViewAuditLogs,
+      canManageSharing,
+    } = data;
 
     const existingRole = await this.findByName(name);
     if (existingRole) {
@@ -53,7 +62,13 @@ export class RolesService {
   }
 
   async update(id: string, data: any) {
-    const { description, canCreateRootFolders, canUploadRootDocs, canViewAuditLogs, canManageSharing } = data;
+    const {
+      description,
+      canCreateRootFolders,
+      canUploadRootDocs,
+      canViewAuditLogs,
+      canManageSharing,
+    } = data;
 
     const [existing] = await this.db
       .select()
@@ -70,10 +85,22 @@ export class RolesService {
       .update(roles)
       .set({
         description,
-        canCreateRootFolders: canCreateRootFolders !== undefined ? !!canCreateRootFolders : existing.canCreateRootFolders,
-        canUploadRootDocs: canUploadRootDocs !== undefined ? !!canUploadRootDocs : existing.canUploadRootDocs,
-        canViewAuditLogs: canViewAuditLogs !== undefined ? !!canViewAuditLogs : existing.canViewAuditLogs,
-        canManageSharing: canManageSharing !== undefined ? !!canManageSharing : existing.canManageSharing,
+        canCreateRootFolders:
+          canCreateRootFolders !== undefined
+            ? !!canCreateRootFolders
+            : existing.canCreateRootFolders,
+        canUploadRootDocs:
+          canUploadRootDocs !== undefined
+            ? !!canUploadRootDocs
+            : existing.canUploadRootDocs,
+        canViewAuditLogs:
+          canViewAuditLogs !== undefined
+            ? !!canViewAuditLogs
+            : existing.canViewAuditLogs,
+        canManageSharing:
+          canManageSharing !== undefined
+            ? !!canManageSharing
+            : existing.canManageSharing,
         updatedAt: new Date(),
       })
       .where(eq(roles.id, id))
@@ -98,9 +125,7 @@ export class RolesService {
       throw new ConflictException('System critical roles cannot be deleted');
     }
 
-    await this.db
-      .delete(roles)
-      .where(eq(roles.id, id));
+    await this.db.delete(roles).where(eq(roles.id, id));
 
     return { message: 'Role deleted successfully' };
   }

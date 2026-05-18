@@ -10,7 +10,7 @@ import { documents } from '../../db/schema';
 import { StorageService } from '../../common/storage/storage.service';
 import { SearchService } from '../search/search.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 
 @Injectable()
 export class DocumentsService extends BaseService<
@@ -90,6 +90,7 @@ export class DocumentsService extends BaseService<
       folderId?: string;
       ownerId: string;
       tagIds?: string[];
+      tenantId: string;
     },
     file: Express.Multer.File,
   ) {
@@ -103,6 +104,7 @@ export class DocumentsService extends BaseService<
             description: data.description,
             folderId: data.folderId,
             ownerId: data.ownerId,
+            tenantId: data.tenantId,
             createdAt: new Date(),
             updatedAt: new Date(),
           })
@@ -162,7 +164,7 @@ export class DocumentsService extends BaseService<
     };
   }
 
-  async findAllWithTags(folderId?: string) {
+  async findAllWithTags(folderId: string | undefined, tenantId: string) {
     const query = this.db
       .select({
         document: documents,
@@ -176,7 +178,11 @@ export class DocumentsService extends BaseService<
       .leftJoin(schema.tags, eq(schema.documentTags.tagId, schema.tags.id));
 
     if (folderId) {
-      query.where(eq(documents.folderId, folderId));
+      query.where(
+        and(eq(documents.folderId, folderId), eq(documents.tenantId, tenantId)),
+      );
+    } else {
+      query.where(eq(documents.tenantId, tenantId));
     }
 
     const rows = await query;

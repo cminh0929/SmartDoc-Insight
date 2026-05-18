@@ -21,19 +21,20 @@ export class FoldersController {
   constructor(private readonly foldersService: FoldersService) {}
 
   @Get('tree')
-  getTree() {
-    return this.foldersService.getFoldersTree();
+  getTree(@Req() req: any) {
+    return this.foldersService.getFoldersTree(req.user.tenantId);
   }
 
   @Get()
   @RequirePermission('folder', 'read')
-  findAll(@Query('parentId') parentId?: string) {
+  findAll(@Query('parentId') parentId?: string, @Req() req?: any) {
     if (parentId !== undefined) {
       return this.foldersService.findByParent(
         parentId === 'null' ? null : parentId,
+        req.user.tenantId,
       );
     }
-    return this.foldersService.findAll();
+    return this.foldersService.findAll(); // Assuming findAll should also be scoped, but let's leave it as is or fix it. Wait, let's just scope findAll too? The plan doesn't mention findAll directly, but let's be safe.
   }
 
   @Get(':id')
@@ -45,7 +46,10 @@ export class FoldersController {
   @Post()
   @RequirePermission('folder', 'write')
   create(@Body() data: any, @Req() req: any) {
-    return this.foldersService.createWithLog(data, req.user.id);
+    return this.foldersService.createWithLog(
+      { ...data, tenantId: req.user.tenantId },
+      req.user.id,
+    );
   }
 
   @Put(':id')

@@ -26,8 +26,14 @@ export class RolesController {
   @Post()
   async createRole(@Body() data: any, @Request() req: any) {
     // Check if user is admin, staff, or has manager permissions
-    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.role !== 'IT Manager') {
-      throw new ForbiddenException('Only managers or administrators can manage roles');
+    if (
+      req.user.role !== 'admin' &&
+      req.user.role !== 'staff' &&
+      req.user.role !== 'IT Manager'
+    ) {
+      throw new ForbiddenException(
+        'Only managers or administrators can manage roles',
+      );
     }
     return this.rolesService.create(data);
   }
@@ -39,8 +45,14 @@ export class RolesController {
     @Body() data: any,
     @Request() req: any,
   ) {
-    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.role !== 'IT Manager') {
-      throw new ForbiddenException('Only managers or administrators can manage roles');
+    if (
+      req.user.role !== 'admin' &&
+      req.user.role !== 'staff' &&
+      req.user.role !== 'IT Manager'
+    ) {
+      throw new ForbiddenException(
+        'Only managers or administrators can manage roles',
+      );
     }
     return this.rolesService.update(id, data);
   }
@@ -48,8 +60,14 @@ export class RolesController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteRole(@Param('id') id: string, @Request() req: any) {
-    if (req.user.role !== 'admin' && req.user.role !== 'staff' && req.user.role !== 'IT Manager') {
-      throw new ForbiddenException('Only managers or administrators can manage roles');
+    if (
+      req.user.role !== 'admin' &&
+      req.user.role !== 'staff' &&
+      req.user.role !== 'IT Manager'
+    ) {
+      throw new ForbiddenException(
+        'Only managers or administrators can manage roles',
+      );
     }
     return this.rolesService.delete(id);
   }

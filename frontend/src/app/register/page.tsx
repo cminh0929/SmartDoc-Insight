@@ -2,36 +2,26 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { FileText, Loader2, Lock, Mail, User, ShieldCheck } from "lucide-react"
+import { FileText, Loader2, Lock, Mail, User, ShieldCheck, Building2, Hash } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/context/auth-context"
 
 export default function RegisterPage() {
+  const [workspaceMode, setWorkspaceMode] = React.useState<"join" | "create">("join")
+  const [companyCode, setCompanyCode] = React.useState("")
+  const [companyName, setCompanyName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [fullName, setFullName] = React.useState("")
   const [role, setRole] = React.useState("intern")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
-  const [canRegisterAdmin, setCanRegisterAdmin] = React.useState(true)
   const [availableRoles, setAvailableRoles] = React.useState<{ name: string; description: string }[]>([])
   const { login } = useAuth()
 
   React.useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const res = await fetch("http://localhost:3001/auth/admin-status")
-        const data = await res.json()
-        setCanRegisterAdmin(data.canRegisterAdmin)
-        if (!data.canRegisterAdmin) {
-          setRole("intern")
-        }
-      } catch (err) {
-        console.error("Failed to check admin status:", err)
-      }
-    }
     const fetchRoles = async () => {
       try {
         const res = await fetch("http://localhost:3001/roles")
@@ -43,7 +33,6 @@ export default function RegisterPage() {
         console.error("Failed to fetch roles:", err)
       }
     }
-    checkAdminStatus()
     fetchRoles()
   }, [])
 
@@ -52,11 +41,24 @@ export default function RegisterPage() {
     setLoading(true)
     setError(null)
 
+    const payload: any = {
+      email,
+      password,
+      fullName,
+      role: workspaceMode === "create" ? "admin" : role
+    };
+
+    if (workspaceMode === "join") {
+      payload.companyCode = companyCode.toUpperCase()
+    } else {
+      payload.companyName = companyName
+    }
+
     try {
       const response = await fetch("http://localhost:3001/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, fullName, role }),
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -81,11 +83,71 @@ export default function RegisterPage() {
             <FileText size={28} />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Create Account</h1>
-          <p className="text-sm text-muted-foreground">Join the IT DocHub platform</p>
+          <p className="text-sm text-muted-foreground">Join the Corporate Document Platform</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+          {/* Segmented Workspace Tab */}
+          <div className="flex bg-accent/40 p-1.5 rounded-xl border border-accent">
+            <button
+              type="button"
+              onClick={() => setWorkspaceMode("join")}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-all ${
+                workspaceMode === "join" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Join Existing Workspace
+            </button>
+            <button
+              type="button"
+              onClick={() => setWorkspaceMode("create")}
+              className={`flex-1 px-3 py-2 rounded-lg text-xs font-bold tracking-wide transition-all ${
+                workspaceMode === "create" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Create New Enterprise
+            </button>
+          </div>
+
           <div className="space-y-4">
+            {workspaceMode === "join" ? (
+              <div className="space-y-2 animate-fade-in">
+                <Label htmlFor="companyCode">Workspace Invite Code</Label>
+                <div className="relative">
+                  <Input 
+                    id="companyCode" 
+                    type="text" 
+                    placeholder="e.g. SDC123" 
+                    className="pl-10 uppercase"
+                    value={companyCode}
+                    onChange={(e) => setCompanyCode(e.target.value)}
+                    required
+                  />
+                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 animate-fade-in">
+                <Label htmlFor="companyName">Enterprise Name</Label>
+                <div className="relative">
+                  <Input 
+                    id="companyName" 
+                    type="text" 
+                    placeholder="e.g. Acme Corporation" 
+                    className="pl-10"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    required
+                  />
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <div className="relative">
@@ -134,34 +196,36 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="role">Initial Role</Label>
-              <div className="relative">
-                <select 
-                  id="role"
-                  className="w-full bg-background border rounded-md h-10 px-10 text-sm focus:ring-2 focus:ring-primary appearance-none"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  {availableRoles.length > 0 ? (
-                    availableRoles
-                      .filter(r => r.name !== 'admin' || canRegisterAdmin)
-                      .map(r => (
-                        <option key={r.name} value={r.name}>
-                          {r.name === 'admin' ? 'Admin' : r.name === 'staff' ? 'Staff' : r.name === 'intern' ? 'Intern' : r.name}
-                        </option>
-                      ))
-                  ) : (
-                    <>
-                      <option value="intern">Intern</option>
-                      <option value="staff">Staff</option>
-                      {canRegisterAdmin && <option value="admin">Admin</option>}
-                    </>
-                  )}
-                </select>
-                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            {workspaceMode === "join" && (
+              <div className="space-y-2 animate-fade-in">
+                <Label htmlFor="role">Initial Role</Label>
+                <div className="relative">
+                  <select 
+                    id="role"
+                    className="w-full bg-background border rounded-md h-10 px-10 text-sm focus:ring-2 focus:ring-primary appearance-none"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                  >
+                    {availableRoles.length > 0 ? (
+                      availableRoles
+                        .filter(r => r.name !== 'admin')
+                        .map(r => (
+                          <option key={r.name} value={r.name}>
+                            {r.name === 'staff' ? 'Staff' : r.name === 'intern' ? 'Intern' : r.name}
+                          </option>
+                        ))
+                    ) : (
+                      <>
+                        <option value="intern">Intern</option>
+                        <option value="staff">Staff</option>
+                      </>
+                    )}
+                    <option value="admin">Admin (Subject to limit)</option>
+                  </select>
+                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {error && (
@@ -175,7 +239,7 @@ export default function RegisterPage() {
                 Creating account...
               </>
             ) : (
-              "Sign Up"
+              workspaceMode === "create" ? "Register Enterprise" : "Join Workspace"
             )}
           </Button>
 

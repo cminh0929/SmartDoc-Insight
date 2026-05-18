@@ -54,7 +54,11 @@ export class PermissionsGuard implements CanActivate {
         const parentId = request.body?.parentId;
         if (!parentId) {
           // Creating a root folder. Allow Admin, Staff, and IT Manager, deny Intern.
-          return user.role === 'admin' || user.role === 'staff' || user.role === 'IT Manager';
+          return (
+            user.role === 'admin' ||
+            user.role === 'staff' ||
+            user.role === 'IT Manager'
+          );
         }
         // Creating a child folder, check write permission on parent folder
         return this.permissionsService.checkEffectivePermission(
@@ -70,7 +74,11 @@ export class PermissionsGuard implements CanActivate {
         const folderId = request.body?.folderId;
         if (!folderId) {
           // Uploading to root. Allow Admin, Staff, and IT Manager, deny Intern.
-          return user.role === 'admin' || user.role === 'staff' || user.role === 'IT Manager';
+          return (
+            user.role === 'admin' ||
+            user.role === 'staff' ||
+            user.role === 'IT Manager'
+          );
         }
         // Uploading to a folder, check write permission on target folder
         return this.permissionsService.checkEffectivePermission(

@@ -3,7 +3,7 @@ import { BaseService } from '../../common/base/base.service';
 import { folders } from '../../db/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, and } from 'drizzle-orm';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 @Injectable()
@@ -16,8 +16,11 @@ export class FoldersService extends BaseService<typeof folders> {
     super(db, folders);
   }
 
-  async getFoldersTree() {
-    const allFolders = await this.findAll();
+  async getFoldersTree(tenantId: string) {
+    const allFolders = await this.db
+      .select()
+      .from(folders)
+      .where(eq(folders.tenantId, tenantId));
 
     // Simple tree builder logic
     const folderMap = new Map<string, any>();
@@ -39,12 +42,15 @@ export class FoldersService extends BaseService<typeof folders> {
     return roots;
   }
 
-  async findByParent(parentId: string | null) {
+  async findByParent(parentId: string | null, tenantId: string) {
     return this.db
       .select()
       .from(folders)
       .where(
-        parentId ? eq(folders.parentId, parentId) : isNull(folders.parentId),
+        and(
+          parentId ? eq(folders.parentId, parentId) : isNull(folders.parentId),
+          eq(folders.tenantId, tenantId),
+        ),
       );
   }
 

@@ -185,8 +185,10 @@ export class PermissionsService extends BaseService<typeof permissions> {
     if (userList.length === 0) return false;
     const user = userList[0];
 
-    // 2. Admin role has absolute access
-    if (user.role === 'admin') return true;
+    // 2. Admin role has absolute access *within their own tenant*
+    // The actual tenant boundary check happens when we fetch the document or folder below,
+    // so we can't just return true here blindly. We must check the resource's tenantId first.
+    // So we remove the early return and handle admin down below after fetching the entity.
 
     const requiredScore = PERMISSION_SCORES[requiredLevel];
 
@@ -200,6 +202,12 @@ export class PermissionsService extends BaseService<typeof permissions> {
 
       if (docList.length === 0) return false;
       const doc = docList[0];
+
+      // Cross-Tenant data leakage protection
+      if (doc.tenantId !== user.tenantId) return false;
+
+      // Admin role has absolute access within tenant
+      if (user.role === 'admin') return true;
 
       // Document owner has absolute admin rights
       if (doc.ownerId === userId) return true;
@@ -254,6 +262,12 @@ export class PermissionsService extends BaseService<typeof permissions> {
 
       if (folderList.length === 0) return false;
       const folder = folderList[0];
+
+      // Cross-Tenant data leakage protection
+      if (folder.tenantId !== user.tenantId) return false;
+
+      // Admin role has absolute access within tenant
+      if (user.role === 'admin') return true;
 
       // Check inherited parent folder permission
       if (folder.parentId) {

@@ -37,6 +37,7 @@ export class DocumentsController {
       ownerId: string;
       tagIds?: any;
     },
+    @Req() req: any,
   ) {
     let tagIdsParsed: string[] | undefined = undefined;
     if (body.tagIds) {
@@ -59,6 +60,7 @@ export class DocumentsController {
             ? undefined
             : body.folderId,
         tagIds: tagIdsParsed,
+        tenantId: req.user.tenantId,
       },
       file,
     );
@@ -66,9 +68,9 @@ export class DocumentsController {
 
   @Get()
   @RequirePermission('document', 'read')
-  async findAll(@Query('folderId') folderId?: string) {
+  async findAll(@Query('folderId') folderId?: string, @Req() req?: any) {
     const parentId = folderId === 'null' || !folderId ? undefined : folderId;
-    return this.documentsService.findAllWithTags(parentId);
+    return this.documentsService.findAllWithTags(parentId, req?.user?.tenantId);
   }
 
   @Get(':id')

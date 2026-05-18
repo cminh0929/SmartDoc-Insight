@@ -41,11 +41,29 @@ export function Sidebar() {
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
   const [shareFolderData, setShareFolderData] = React.useState<{ id: string; name: string } | null>(null)
 
-  const { user, logout } = useAuth()
+  const { user, logout, token } = useAuth()
+  const [workspaceName, setWorkspaceName] = React.useState<string>("IT DocHub")
 
   React.useEffect(() => {
-    if (user) loadFolders()
-  }, [user])
+    if (user) {
+      loadFolders()
+      if (token) loadWorkspace()
+    }
+  }, [user, token])
+
+  const loadWorkspace = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/tenants/my-workspace", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setWorkspaceName(data.workspace.name)
+      }
+    } catch (err) {
+      console.error("Failed to load workspace:", err)
+    }
+  }
 
   const loadFolders = async () => {
     try {
@@ -66,10 +84,12 @@ export function Sidebar() {
   return (
     <div className="flex flex-col h-full w-64 bg-card border-r">
       <div className="p-6 flex items-center gap-2">
-        <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
+        <div className="bg-primary text-primary-foreground p-1.5 rounded-lg shrink-0">
           <FileText size={24} />
         </div>
-        <span className="font-bold text-xl tracking-tight">IT DocHub</span>
+        <span className="font-bold text-[15px] leading-tight truncate" title={workspaceName}>
+          {workspaceName}
+        </span>
       </div>
       
       <div className="flex-1 overflow-y-auto px-4 space-y-6">

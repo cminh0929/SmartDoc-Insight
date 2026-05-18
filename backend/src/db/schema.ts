@@ -18,6 +18,15 @@ const tsvector = customType<{ data: string }>({
   },
 });
 
+export const tenants = pgTable('tenants', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  domain: varchar('domain', { length: 255 }),
+  tenantCode: varchar('tenant_code', { length: 10 }).notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export const userRoleEnum = pgEnum('user_role', ['admin', 'intern', 'staff']);
 
 export const users = pgTable('users', {
@@ -26,6 +35,7 @@ export const users = pgTable('users', {
   fullName: varchar('full_name', { length: 255 }).notNull(),
   password: text('password').notNull(),
   role: varchar('role', { length: 255 }).default('intern').notNull(),
+  tenantId: uuid('tenant_id').references(() => tenants.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -34,10 +44,13 @@ export const roles = pgTable('roles', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull().unique(),
   description: text('description'),
-  canCreateRootFolders: boolean('can_create_root_folders').default(false).notNull(),
+  canCreateRootFolders: boolean('can_create_root_folders')
+    .default(false)
+    .notNull(),
   canUploadRootDocs: boolean('can_upload_root_docs').default(false).notNull(),
   canViewAuditLogs: boolean('can_view_audit_logs').default(false).notNull(),
   canManageSharing: boolean('can_manage_sharing').default(false).notNull(),
+  tenantId: uuid('tenant_id').references(() => tenants.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -47,6 +60,7 @@ export const folders = pgTable('folders', {
   name: varchar('name', { length: 255 }).notNull(),
   parentId: uuid('parent_id'),
   description: text('description'),
+  tenantId: uuid('tenant_id').references(() => tenants.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -63,6 +77,7 @@ export const documents = pgTable(
       .notNull(),
     isArchived: boolean('is_archived').default(false).notNull(),
     searchVector: tsvector('search_vector'), // Full-Text Search vector
+    tenantId: uuid('tenant_id').references(() => tenants.id),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
@@ -110,6 +125,7 @@ export const auditLogs = pgTable('audit_logs', {
   details: text('details'),
   ipAddress: varchar('ip_address', { length: 45 }),
   userAgent: text('user_agent'),
+  tenantId: uuid('tenant_id').references(() => tenants.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

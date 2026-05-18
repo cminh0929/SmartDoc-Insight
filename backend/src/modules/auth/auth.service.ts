@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
 import { users } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +20,17 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private generateInviteCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
   async register(data: any) {
-    const { email, password, fullName, role } = data;
+    const { email, password, fullName, role, companyName, companyCode } = data;
 
     // Check if user exists
     const existingUser = await this.db
@@ -34,12 +43,61 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
-    // Enforce maximum of 2 admin accounts
-    if (role === 'admin') {
-      const adminCount = await this.getAdminCount();
-      if (adminCount >= 2) {
-        throw new BadRequestException('Maximum of 2 admin accounts has been reached');
+    let tenantId: string | null = null;
+    let finalRole = role || 'intern';
+
+    if (companyName) {
+      // Path A: Register New Enterprise
+      let code = this.generateInviteCode();
+      let isUnique = false;
+      while (!isUnique) {
+        const [existing] = await this.db
+          .select()
+          .from(schema.tenants)
+          .where(eq(schema.tenants.tenantCode, code))
+          .limit(1);
+        if (existing) {
+          code = this.generateInviteCode();
+        } else {
+          isUnique = true;
+        }
       }
+
+      const [newTenant] = await this.db
+        .insert(schema.tenants)
+        .values({
+          name: companyName,
+          tenantCode: code,
+        })
+        .returning();
+
+      tenantId = newTenant.id;
+      finalRole = 'admin'; // Founder becomes admin
+    } else if (companyCode) {
+      // Path B: Join Existing Workspace
+      const [existingTenant] = await this.db
+        .select()
+        .from(schema.tenants)
+        .where(eq(schema.tenants.tenantCode, companyCode))
+        .limit(1);
+      if (!existingTenant) {
+        throw new BadRequestException('Invalid enterprise invite code');
+      }
+      tenantId = existingTenant.id;
+
+      // Enforce maximum of 2 admin accounts per workspace
+      if (finalRole === 'admin') {
+        const adminCount = await this.getAdminCount(tenantId!);
+        if (adminCount >= 2) {
+          throw new BadRequestException(
+            'Maximum of 2 admin accounts has been reached for this workspace',
+          );
+        }
+      }
+    } else {
+      throw new BadRequestException(
+        'Either companyName or companyCode must be provided',
+      );
     }
 
     // Hash password
@@ -52,7 +110,8 @@ export class AuthService {
         email,
         password: hashedPassword,
         fullName,
-        role: role || 'intern',
+        role: finalRole,
+        tenantId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -90,6 +149,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       fullName: user.fullName,
+      tenantId: user.tenantId,
     };
 
     return {
@@ -99,6 +159,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        tenantId: user.tenantId,
       },
     };
   }
@@ -124,11 +185,11 @@ export class AuthService {
       .from(users);
   }
 
-  async getAdminCount() {
+  async getAdminCount(tenantId: string) {
     const admins = await this.db
       .select()
       .from(users)
-      .where(eq(users.role, 'admin'));
+      .where(and(eq(users.role, 'admin'), eq(users.tenantId, tenantId)));
     return admins.length;
   }
 }

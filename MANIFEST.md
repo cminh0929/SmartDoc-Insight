@@ -2,9 +2,9 @@
 
 ## 1. Nhật ký tiến độ (Process Log)
 
-- **Current Status**: Giai đoạn 9 (RBAC & Custom Roles) hoàn tất xuất sắc. Dự án đã được nâng cấp với khả năng tạo và cấp quyền động (Custom Roles) trực tiếp từ giao diện Quản trị.
-- **Last Action**: Tích hợp module quản lý Vai trò (Roles & Permissions) trong `Settings`, cho phép tick/bật các cờ quyền hạn (ví dụ: View Audit Logs, Create Root Folders) và tự động đồng bộ vào PostgreSQL theo thời gian thực. Bổ sung script hướng dẫn Onboarding cho AI mới.
-- **Next Action**: Bắt đầu Giai đoạn 10: Triển khai Kế hoạch Cô lập Doanh nghiệp Đa người dùng (Multi-Tenant Enterprise SaaS) theo bản thiết kế kiến trúc `.claude/plan/enterprise-multi-tenancy.md`.
+- **Current Status**: DỰ ÁN HOÀN TẤT - PHIÊN BẢN 1.0.0. Hệ thống quản lý tài liệu IT Support Document Insight đã được đóng gói hoàn chỉnh với kiến trúc SaaS (Enterprise Multi-Tenancy), RBAC động, và Full-Text Search qua Meilisearch.
+- **Last Action**: Chốt phiên bản v1.0.0. Cập nhật `package.json` cho cả frontend và backend. Môi trường Production đã sẵn sàng với PM2.
+- **Next Action**: Chuyển sang giai đoạn bảo trì (Maintenance Mode) hoặc phát triển các tính năng mở rộng (v1.x / v2.0) trong tương lai. Lên lịch backup Database định kỳ.
 
 ## 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 
@@ -12,7 +12,7 @@
 
 - `src/db/`: Chứa `schema.ts` và `database.module.ts` (Drizzle ORM).
 - `src/common/`: Chứa `BaseService`, `StorageService` (Local FS).
-- `src/modules/`: Chứa `DocumentsModule`, `SearchModule`, `FoldersModule`, `AuthModule`, `DashboardModule`, `AuditLogsModule`, `PermissionsModule`, `TagsModule`, `RolesModule`.
+- `src/modules/`: Chứa `DocumentsModule`, `SearchModule`, `FoldersModule`, `AuthModule`, `DashboardModule`, `AuditLogsModule`, `PermissionsModule`, `TagsModule`, `RolesModule`, `TenantsModule`.
 - `drizzle.config.ts`: Cấu hình kết nối và migration DB.
 
 ### Frontend (`/frontend`)
