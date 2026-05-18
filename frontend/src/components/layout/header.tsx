@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bell, Search, User, FileText, Loader2, X } from "lucide-react"
+import { Bell, Search, User, FileText, Loader2, X, Sun, Moon } from "lucide-react"
 import { searchApi } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
@@ -12,8 +12,25 @@ export function Header() {
   const [results, setResults] = React.useState<any[]>([])
   const [isSearching, setIsSearching] = React.useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false)
+  const [theme, setTheme] = React.useState<"light" | "dark">("light")
   const searchRef = React.useRef<HTMLDivElement>(null)
   const router = useRouter()
+
+  React.useEffect(() => {
+    // Initial theme check
+    const isDark = document.documentElement.classList.contains("dark")
+    setTheme(isDark ? "dark" : "light")
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light"
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+    setTheme(nextTheme)
+  }
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -117,6 +134,17 @@ export function Header() {
       </div>
       
       <div className="flex items-center gap-4">
+        <button 
+          onClick={toggleTheme}
+          className="p-2 text-muted-foreground hover:bg-accent rounded-xl transition-all relative group"
+          title="Toggle Dark Mode"
+        >
+          {theme === "light" ? (
+            <Moon size={20} className="group-hover:-rotate-12 transition-transform" />
+          ) : (
+            <Sun size={20} className="group-hover:rotate-45 transition-transform" />
+          )}
+        </button>
         <button className="p-2 text-muted-foreground hover:bg-accent rounded-xl transition-all relative group">
           <Bell size={20} className="group-hover:rotate-12 transition-transform" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full border-2 border-card"></span>
