@@ -35,3 +35,7 @@ backend/uploads/*
 # Binaries
 meilisearch.exe
 data.ms/
+
+# AI Agents
+.agent/
+.claude/
