@@ -14,6 +14,7 @@
 6. **[Backend Core](./manage-document-be.md)**: Triển khai NestJS Services, Storage & Search modules.
 7. **[Frontend Portal](./manage-document-fe.md)**: Triển khai Next.js UI & Explorer components.
 8. **[Integration Bridge](./manage-document-api-bridge.md)**: Kết nối API, shared schemas và React Query hooks.
+9. **[Enterprise Multi-Tenancy](./enterprise-multi-tenancy.md)**: Thiết lập phân vùng cô lập dữ liệu Doanh nghiệp đa người dùng (Multi-Tenant SaaS).
 
 ### Unified Implementation Roadmap
 
