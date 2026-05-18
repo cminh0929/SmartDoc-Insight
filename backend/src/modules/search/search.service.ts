@@ -59,7 +59,8 @@ export class SearchService implements OnModuleInit {
 
   async search(query: string, filters?: any) {
     try {
-      return await this.client.index('documents').search(query, filters);
+      const result = await this.client.index('documents').search(query, filters);
+      return result.hits;
     } catch (error: any) {
       throw new InternalServerErrorException(`Search failed: ${error.message}`);
     }
