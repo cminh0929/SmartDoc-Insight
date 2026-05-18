@@ -29,3 +29,6 @@ pm2 monit                        # Open interactive monitoring dashboard
 pm2 save                         # Save current running process list
 pm2 resurrect                    # Restore saved process list on boot
 ```
+
+## AI Agent Rules & Project Guidelines
+1. **MANIFEST PRIORITY (CRITICAL)**: Updating `MANIFEST.md` is the HIGHEST PRIORITY after completing any architectural change, feature implementation, or task iteration. You MUST proactively update the 'Process Log' and 'Folder Details' in `MANIFEST.md` to ensure the next AI session has the correct continuation context. Do not wait for the user to ask.
