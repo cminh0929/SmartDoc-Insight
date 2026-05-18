@@ -2,9 +2,9 @@
 
 ## 1. Nhật ký tiến độ (Process Log)
 
-- **Current Status**: Giai đoạn 8 hoàn tất xuất sắc. Dự án đã được tối ưu hóa trải nghiệm UI/UX toàn diện và tích hợp công cụ kiểm thử bảo mật tự động.
-- **Last Action**: Tích hợp nút Dark Mode Toggle cao cấp, sửa lỗi liên kết điều hướng tài liệu gần đây, và xây dựng script kiểm thử bảo mật & hiệu năng tự động `backend/scripts/security-load-test.js`.
-- **Next Action**: Hệ thống đã sẵn sàng 100% để bàn giao, đưa vào vận hành và bảo trì dài hạn.
+- **Current Status**: Giai đoạn 9 (RBAC & Custom Roles) hoàn tất xuất sắc. Dự án đã được nâng cấp với khả năng tạo và cấp quyền động (Custom Roles) trực tiếp từ giao diện Quản trị.
+- **Last Action**: Tích hợp module quản lý Vai trò (Roles & Permissions) trong `Settings`, cho phép tick/bật các cờ quyền hạn (ví dụ: View Audit Logs, Create Root Folders) và tự động đồng bộ vào PostgreSQL theo thời gian thực. Bổ sung script hướng dẫn Onboarding cho AI mới.
+- **Next Action**: Bắt đầu Giai đoạn 10: Triển khai Kế hoạch Cô lập Doanh nghiệp Đa người dùng (Multi-Tenant Enterprise SaaS) theo bản thiết kế kiến trúc `.claude/plan/enterprise-multi-tenancy.md`.
 
 ## 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 
@@ -12,7 +12,7 @@
 
 - `src/db/`: Chứa `schema.ts` và `database.module.ts` (Drizzle ORM).
 - `src/common/`: Chứa `BaseService`, `StorageService` (Local FS).
-- `src/modules/`: Chứa `DocumentsModule`, `SearchModule`, `FoldersModule`, `AuthModule`, `DashboardModule`, `AuditLogsModule`, `PermissionsModule`, `TagsModule`.
+- `src/modules/`: Chứa `DocumentsModule`, `SearchModule`, `FoldersModule`, `AuthModule`, `DashboardModule`, `AuditLogsModule`, `PermissionsModule`, `TagsModule`, `RolesModule`.
 - `drizzle.config.ts`: Cấu hình kết nối và migration DB.
 
 ### Frontend (`/frontend`)
