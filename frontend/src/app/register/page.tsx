@@ -15,7 +15,24 @@ export default function RegisterPage() {
   const [role, setRole] = React.useState("intern")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [canRegisterAdmin, setCanRegisterAdmin] = React.useState(true)
   const { login } = useAuth()
+
+  React.useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/auth/admin-status")
+        const data = await res.json()
+        setCanRegisterAdmin(data.canRegisterAdmin)
+        if (!data.canRegisterAdmin) {
+          setRole("intern")
+        }
+      } catch (err) {
+        console.error("Failed to check admin status:", err)
+      }
+    }
+    checkAdminStatus()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,7 +132,7 @@ export default function RegisterPage() {
                 >
                   <option value="intern">Intern</option>
                   <option value="staff">Staff</option>
-                  <option value="admin">Admin</option>
+                  {canRegisterAdmin && <option value="admin">Admin</option>}
                 </select>
                 <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               </div>

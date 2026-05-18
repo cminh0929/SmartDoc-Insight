@@ -3,6 +3,7 @@ import {
   Inject,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -31,6 +32,14 @@ export class AuthService {
 
     if (existingUser.length > 0) {
       throw new ConflictException('Email already exists');
+    }
+
+    // Enforce maximum of 2 admin accounts
+    if (role === 'admin') {
+      const adminCount = await this.getAdminCount();
+      if (adminCount >= 2) {
+        throw new BadRequestException('Maximum of 2 admin accounts has been reached');
+      }
     }
 
     // Hash password
@@ -113,5 +122,13 @@ export class AuthService {
         role: users.role,
       })
       .from(users);
+  }
+
+  async getAdminCount() {
+    const admins = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.role, 'admin'));
+    return admins.length;
   }
 }
