@@ -11,6 +11,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     AuditLogsModule,
     TagsModule,
     PermissionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

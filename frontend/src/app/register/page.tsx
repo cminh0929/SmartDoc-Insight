@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [canRegisterAdmin, setCanRegisterAdmin] = React.useState(true)
+  const [availableRoles, setAvailableRoles] = React.useState<{ name: string; description: string }[]>([])
   const { login } = useAuth()
 
   React.useEffect(() => {
@@ -31,7 +32,19 @@ export default function RegisterPage() {
         console.error("Failed to check admin status:", err)
       }
     }
+    const fetchRoles = async () => {
+      try {
+        const res = await fetch("http://localhost:3001/roles")
+        if (res.ok) {
+          const data = await res.json()
+          setAvailableRoles(data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch roles:", err)
+      }
+    }
     checkAdminStatus()
+    fetchRoles()
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,9 +143,21 @@ export default function RegisterPage() {
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                 >
-                  <option value="intern">Intern</option>
-                  <option value="staff">Staff</option>
-                  {canRegisterAdmin && <option value="admin">Admin</option>}
+                  {availableRoles.length > 0 ? (
+                    availableRoles
+                      .filter(r => r.name !== 'admin' || canRegisterAdmin)
+                      .map(r => (
+                        <option key={r.name} value={r.name}>
+                          {r.name === 'admin' ? 'Admin' : r.name === 'staff' ? 'Staff' : r.name === 'intern' ? 'Intern' : r.name}
+                        </option>
+                      ))
+                  ) : (
+                    <>
+                      <option value="intern">Intern</option>
+                      <option value="staff">Staff</option>
+                      {canRegisterAdmin && <option value="admin">Admin</option>}
+                    </>
+                  )}
                 </select>
                 <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               </div>

@@ -31,7 +31,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     // Admin has superuser status
-    if (user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'IT Manager') {
       return true;
     }
 
@@ -53,8 +53,8 @@ export class PermissionsGuard implements CanActivate {
       if (entityType === 'folder' && level === 'write') {
         const parentId = request.body?.parentId;
         if (!parentId) {
-          // Creating a root folder. Allow Admin and Staff, deny Intern.
-          return user.role === 'admin' || user.role === 'staff';
+          // Creating a root folder. Allow Admin, Staff, and IT Manager, deny Intern.
+          return user.role === 'admin' || user.role === 'staff' || user.role === 'IT Manager';
         }
         // Creating a child folder, check write permission on parent folder
         return this.permissionsService.checkEffectivePermission(
@@ -69,8 +69,8 @@ export class PermissionsGuard implements CanActivate {
       if (entityType === 'document' && level === 'write') {
         const folderId = request.body?.folderId;
         if (!folderId) {
-          // Uploading to root. Allow Admin and Staff, deny Intern.
-          return user.role === 'admin' || user.role === 'staff';
+          // Uploading to root. Allow Admin, Staff, and IT Manager, deny Intern.
+          return user.role === 'admin' || user.role === 'staff' || user.role === 'IT Manager';
         }
         // Uploading to a folder, check write permission on target folder
         return this.permissionsService.checkEffectivePermission(

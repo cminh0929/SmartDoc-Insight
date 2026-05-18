@@ -25,7 +25,19 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   fullName: varchar('full_name', { length: 255 }).notNull(),
   password: text('password').notNull(),
-  role: userRoleEnum('role').default('intern').notNull(),
+  role: varchar('role', { length: 255 }).default('intern').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const roles = pgTable('roles', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  description: text('description'),
+  canCreateRootFolders: boolean('can_create_root_folders').default(false).notNull(),
+  canUploadRootDocs: boolean('can_upload_root_docs').default(false).notNull(),
+  canViewAuditLogs: boolean('can_view_audit_logs').default(false).notNull(),
+  canManageSharing: boolean('can_manage_sharing').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
