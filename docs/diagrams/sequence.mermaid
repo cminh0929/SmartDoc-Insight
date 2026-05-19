@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor Tech as Kỹ thuật viên
+    participant FE as Next.js (Frontend)
+    participant API as NestJS (Backend)
+    participant DB as PostgreSQL
+    participant BG as Background Worker
+    participant Meili as Meilisearch
+
+    Tech->>FE: Bấm "Lưu" tài liệu
+    FE->>API: Gửi POST Request (Lưu tài liệu)
+    API->>DB: Ghi dữ liệu vào bảng Documents
+    DB-->>API: Trả về trạng thái (Thành công)
+    
+    API-)BG: Emit Event: "document.created" (Bất đồng bộ)
+    API-->>FE: HTTP 200 OK (Trả về ngay lập tức)
+    FE-->>Tech: Hiện Toast "Lưu thành công!" (Trải nghiệm mượt mà)
+    
+    Note over BG,Meili: Tiến trình chạy ngầm dưới nền
+    BG->>BG: Trích xuất nội dung (Plain Text)
+    BG->>Meili: Sync dữ liệu (POST /indexes/docs)
+    Meili-->>BG: Xác nhận Index thành công

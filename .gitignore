@@ -39,3 +39,8 @@ data.ms/
 # AI Agents
 .agent/
 .claude/
+
+# Documentation Artifacts (Generated)
+docs/*.docx
+docs/SmartDoc_Insight_*.md
+download_diagrams.js

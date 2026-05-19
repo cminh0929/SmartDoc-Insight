@@ -1,0 +1,26 @@
+flowchart LR
+    Admin([System Admin\nQuản trị Doanh nghiệp])
+    Manager([IT Manager\nQuản lý Đội ngũ])
+    Tech([Helpdesk Tech\nKỹ thuật viên Hiện trường])
+
+    subgraph SmartDoc Insight SaaS
+        UC1(Tạo & Quản lý Workspace)
+        UC2(Cấu hình Custom Roles)
+        UC3(Theo dõi Audit Logs)
+        UC4(Quản lý Cấu trúc Thư mục)
+        UC5(Biên soạn & Cập nhật SOPs)
+        UC6(Khôi phục Phiên bản Tài liệu)
+        UC7(Tìm kiếm Tài liệu siêu tốc)
+    end
+
+    Admin --> UC1
+    Admin --> UC2
+    Admin --> UC3
+    
+    Manager --> UC4
+    Manager --> UC5
+    Manager --> UC6
+    Manager --> UC3
+
+    Tech --> UC7
+    Tech -. "Nếu được phân quyền" .-> UC5

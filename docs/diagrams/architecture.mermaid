@@ -1,0 +1,56 @@
+graph TD
+    %% Define Styles
+    classDef client fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    classDef server fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef db fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
+    classDef search fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+    classDef tenant fill:#f3f4f6,stroke:#9ca3af,stroke-width:2px,stroke-dasharray: 5 5
+
+    %% Client Layer
+    subgraph ClientLayer ["Client Layer (Frontend)"]
+        UI["Next.js Web App\n(React, Tailwind, Shadcn UI)"]:::client
+    end
+
+    %% Backend Layer
+    subgraph ServerLayer ["Server Layer (Backend)"]
+        API["NestJS API Gateway\n(REST, JWT Guard)"]:::server
+        
+        subgraph Services ["Core Services"]
+            Auth["Auth & Tenant Service"]:::server
+            Doc["Document & Folder Service"]:::server
+            RBAC["Permissions & Role Service"]:::server
+            Logs["Audit Logs Service"]:::server
+        end
+        
+        API --> Auth
+        API --> Doc
+        API --> RBAC
+        API --> Logs
+    end
+
+    %% Storage Layer
+    subgraph StorageLayer ["Data & Storage Layer"]
+        DB[("PostgreSQL\n(Drizzle ORM)")]:::db
+        Search[("Meilisearch\n(Full-Text Engine)")]:::search
+        FS[/"Local File System\n(Uploads)"/]:::db
+    end
+
+    %% Multi-Tenant Logical Boundary
+    subgraph SaaS ["SaaS Logical Boundary (Data Isolation)"]
+        TenantA["Tenant A (Workspace)"]:::tenant
+        TenantB["Tenant B (Workspace)"]:::tenant
+    end
+
+    %% Connections
+    UI -- "HTTP/REST\n(JSON + JWT)" --> API
+    
+    Auth -- "Validate/Generate Invite" --> DB
+    Doc -- "Store Meta & tenantId" --> DB
+    Doc -- "Upload File" --> FS
+    Doc -- "Sync Text" --> Search
+    RBAC -- "Check Policy" --> DB
+    Logs -- "Record Event" --> DB
+    
+    %% Tenant Isolation Visual
+    DB -. "Scope by tenantId" .-> SaaS
+    Search -. "Filter by tenantId" .-> SaaS
