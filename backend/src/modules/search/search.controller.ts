@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -11,6 +11,7 @@ export class SearchController {
   async search(
     @Query('q') query: string,
     @Query('folderId') folderId?: string,
+    @Req() req?: any,
   ) {
     const filters: any = {};
 
@@ -18,6 +19,7 @@ export class SearchController {
       filters.filter = `folderId = ${folderId}`;
     }
 
-    return this.searchService.search(query, filters);
+    const tenantId = req?.user?.tenantId;
+    return this.searchService.search(query, tenantId, filters);
   }
 }

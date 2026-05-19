@@ -14,15 +14,16 @@ import { RolesService } from './roles.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('roles')
+@UseGuards(JwtAuthGuard)
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Get()
-  async getAllRoles() {
-    return this.rolesService.findAll();
+  async getAllRoles(@Request() req: any) {
+    const tenantId = req.user.tenantId;
+    return this.rolesService.findAll(tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   async createRole(@Body() data: any, @Request() req: any) {
     // Check if user is admin, staff, or has manager permissions
@@ -35,10 +36,12 @@ export class RolesController {
         'Only managers or administrators can manage roles',
       );
     }
-    return this.rolesService.create(data);
+    return this.rolesService.create({
+      ...data,
+      tenantId: req.user.tenantId,
+    });
   }
 
-  @UseGuards(JwtAuthGuard)
   @Put(':id')
   async updateRole(
     @Param('id') id: string,
@@ -54,10 +57,9 @@ export class RolesController {
         'Only managers or administrators can manage roles',
       );
     }
-    return this.rolesService.update(id, data);
+    return this.rolesService.update(id, data, req.user.tenantId);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async deleteRole(@Param('id') id: string, @Request() req: any) {
     if (
@@ -69,6 +71,6 @@ export class RolesController {
         'Only managers or administrators can manage roles',
       );
     }
-    return this.rolesService.delete(id);
+    return this.rolesService.delete(id, req.user.tenantId);
   }
 }

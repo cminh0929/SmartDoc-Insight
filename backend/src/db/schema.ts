@@ -11,16 +11,16 @@ import {
   customType,
 } from 'drizzle-orm/pg-core';
 
-// Custom type for pgvector embedding (1536 dims = text-embedding-3-small)
+// Custom type mapping to native real[] (compatible without pgvector extension)
 const vector = customType<{ data: number[]; driverData: string }>({
   dataType() {
-    return 'vector(1536)';
+    return 'real[]';
   },
   toDriver(value: number[]): string {
-    return `[${value.join(',')}]`;
+    return `{${value.join(',')}}`;
   },
   fromDriver(value: string): number[] {
-    return value.replace(/[\[\]]/g, '').split(',').map(Number);
+    return value.replace(/[{}]/g, '').split(',').map(Number);
   },
 });
 

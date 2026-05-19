@@ -3,11 +3,12 @@ import {
   Inject,
   ConflictException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
 import { roles } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or, isNull, and } from 'drizzle-orm';
 
 @Injectable()
 export class RolesService {
@@ -16,8 +17,12 @@ export class RolesService {
     private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  async findAll() {
-    return this.db.select().from(roles).orderBy(roles.name);
+  async findAll(tenantId?: string) {
+    const query = this.db.select().from(roles).orderBy(roles.name);
+    if (tenantId) {
+      query.where(or(eq(roles.tenantId, tenantId), isNull(roles.tenantId)));
+    }
+    return query;
   }
 
   async findByName(name: string) {
@@ -37,6 +42,7 @@ export class RolesService {
       canUploadRootDocs,
       canViewAuditLogs,
       canManageSharing,
+      tenantId,
     } = data;
 
     const existingRole = await this.findByName(name);
@@ -53,6 +59,7 @@ export class RolesService {
         canUploadRootDocs: !!canUploadRootDocs,
         canViewAuditLogs: !!canViewAuditLogs,
         canManageSharing: !!canManageSharing,
+        tenantId: tenantId || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -61,7 +68,7 @@ export class RolesService {
     return newRole;
   }
 
-  async update(id: string, data: any) {
+  async update(id: string, data: any, tenantId?: string) {
     const {
       description,
       canCreateRootFolders,
@@ -80,7 +87,11 @@ export class RolesService {
       throw new NotFoundException('Role not found');
     }
 
-    // Do not allow updating core system roles name, only custom permissions
+    // Tenant isolation verification: Cannot update global system roles or roles from other tenants
+    if (existing.tenantId !== tenantId) {
+      throw new ForbiddenException('You do not have permission to modify this role');
+    }
+
     const [updatedRole] = await this.db
       .update(roles)
       .set({
@@ -109,7 +120,7 @@ export class RolesService {
     return updatedRole;
   }
 
-  async delete(id: string) {
+  async delete(id: string, tenantId?: string) {
     const [existing] = await this.db
       .select()
       .from(roles)
@@ -121,8 +132,13 @@ export class RolesService {
     }
 
     // Do not allow deleting system-critical roles
-    if (['admin', 'staff', 'intern'].includes(existing.name)) {
+    if (['admin', 'staff', 'intern'].includes(existing.name) || !existing.tenantId) {
       throw new ConflictException('System critical roles cannot be deleted');
+    }
+
+    // Tenant isolation verification
+    if (existing.tenantId !== tenantId) {
+      throw new ForbiddenException('You do not have permission to delete this role');
     }
 
     await this.db.delete(roles).where(eq(roles.id, id));

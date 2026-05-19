@@ -43,4 +43,9 @@ data.ms/
 # Documentation Artifacts (Generated)
 docs/*.docx
 docs/SmartDoc_Insight_*.md
-download_diagrams.js
+
+# Local Dev Files
+agentshield-*.txt
+generate-test-docs.mjs
+test-docs/
+

@@ -94,7 +94,7 @@ export class RagService {
   async ask(question: string, tenantId: string): Promise<AskResponse> {
     // 1. Embed the question
     const queryEmbedding = await this.embeddingService.embedText(question);
-    const embeddingLiteral = `[${queryEmbedding.join(',')}]`;
+    const embeddingLiteral = `{${queryEmbedding.join(',')}}`;
 
     // 2. Cosine similarity search — tenant-scoped
     const similarityThreshold =
@@ -105,12 +105,12 @@ export class RagService {
         dc.content,
         d.id   AS document_id,
         d.title,
-        1 - (dc.embedding <=> ${embeddingLiteral}::vector) AS similarity
+        cosine_similarity(dc.embedding, ${embeddingLiteral}::real[]) AS similarity
       FROM document_chunks dc
       JOIN documents d ON d.id = dc.document_id
       WHERE dc.tenant_id = ${tenantId}
         AND d.is_archived = false
-        AND 1 - (dc.embedding <=> ${embeddingLiteral}::vector) >= ${similarityThreshold}
+        AND cosine_similarity(dc.embedding, ${embeddingLiteral}::real[]) >= ${similarityThreshold}
       ORDER BY similarity DESC
       LIMIT ${this.topK}
     `);

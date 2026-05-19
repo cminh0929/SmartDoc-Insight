@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../../db/schema';
 import { documents, folders, documentVersions } from '../../db/schema';
-import { count, sql } from 'drizzle-orm';
+import { count, sql, eq } from 'drizzle-orm';
 
 @Injectable()
 export class DashboardService {
@@ -11,24 +11,35 @@ export class DashboardService {
     private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  async getStats() {
+  async getStats(tenantId?: string) {
     // 1. Total Documents
-    const [docCount] = await this.db.select({ value: count() }).from(documents);
+    const docQuery = this.db.select({ value: count() }).from(documents);
+    if (tenantId) {
+      docQuery.where(eq(documents.tenantId, tenantId));
+    }
+    const [docCount] = await docQuery;
 
     // 2. Total Folders
-    const [folderCount] = await this.db
-      .select({ value: count() })
-      .from(folders);
+    const folderQuery = this.db.select({ value: count() }).from(folders);
+    if (tenantId) {
+      folderQuery.where(eq(folders.tenantId, tenantId));
+    }
+    const [folderCount] = await folderQuery;
 
     // 3. Storage usage
-    const [storageUsage] = await this.db
+    const storageQuery = this.db
       .select({
         total: sql<number>`COALESCE(SUM(${documentVersions.fileSize}), 0)`,
       })
-      .from(documentVersions);
+      .from(documentVersions)
+      .innerJoin(documents, sql`${documents.id} = ${documentVersions.documentId}`);
+    if (tenantId) {
+      storageQuery.where(eq(documents.tenantId, tenantId));
+    }
+    const [storageUsage] = await storageQuery;
 
     // 4. Documents by category (folder)
-    const categoryDistribution = await this.db
+    const categoryQuery = this.db
       .select({
         name: folders.name,
         count: count(documents.id),
@@ -37,9 +48,13 @@ export class DashboardService {
       .leftJoin(documents, sql`${folders.id} = ${documents.folderId}`)
       .groupBy(folders.name)
       .limit(5);
+    if (tenantId) {
+      categoryQuery.where(eq(folders.tenantId, tenantId));
+    }
+    const categoryDistribution = await categoryQuery;
 
     // 5. Recent Activity (latest versions)
-    const recentActivity = await this.db
+    const recentQuery = this.db
       .select({
         id: documents.id,
         title: documents.title,
@@ -53,6 +68,10 @@ export class DashboardService {
       )
       .orderBy(sql`${documents.updatedAt} DESC`)
       .limit(5);
+    if (tenantId) {
+      recentQuery.where(eq(documents.tenantId, tenantId));
+    }
+    const recentActivity = await recentQuery;
 
     return {
       totalDocuments: docCount.value,

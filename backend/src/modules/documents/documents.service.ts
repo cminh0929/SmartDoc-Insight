@@ -36,8 +36,11 @@ export class DocumentsService extends BaseService<
     documentId: string,
     file: Express.Multer.File,
     uploadedById: string,
+    tx?: any,
   ) {
     try {
+      const dbClient = tx || this.db;
+
       // 1. Upload file
       const fileKey = await this.storageService.uploadFile(
         file.buffer,
@@ -45,7 +48,7 @@ export class DocumentsService extends BaseService<
       );
 
       // 2. Get next version number
-      const results = await this.db
+      const results = await dbClient
         .select({ versionNumber: schema.documentVersions.versionNumber })
         .from(schema.documentVersions)
         .where(eq(schema.documentVersions.documentId, documentId))
@@ -55,7 +58,7 @@ export class DocumentsService extends BaseService<
       const nextVersion = results.length > 0 ? results[0].versionNumber + 1 : 1;
 
       // 3. Create version record
-      const [version] = await this.db
+      const [version] = await dbClient
         .insert(schema.documentVersions)
         .values({
           documentId,
@@ -70,7 +73,7 @@ export class DocumentsService extends BaseService<
         .returning();
 
       // 4. Update document's updatedAt
-      await this.db
+      await dbClient
         .update(documents)
         .set({ updatedAt: new Date() })
         .where(eq(documents.id, documentId));
@@ -125,7 +128,7 @@ export class DocumentsService extends BaseService<
         }
 
         // 3. Create first version
-        await this.addVersion(doc.id, file, data.ownerId);
+        await this.addVersion(doc.id, file, data.ownerId, tx);
 
         return doc;
       });

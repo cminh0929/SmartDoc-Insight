@@ -1,17 +1,24 @@
 import {
   Injectable,
   OnModuleInit,
-  InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MeiliSearch, Index } from 'meilisearch';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { sql } from 'drizzle-orm';
+import * as schema from '../../db/schema';
 
 @Injectable()
 export class SearchService implements OnModuleInit {
   private client: MeiliSearch;
   private documentIndex: Index;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject('DATABASE_CONNECTION')
+    private readonly db: NodePgDatabase<typeof schema>,
+  ) {
     const host =
       this.configService.get<string>('MEILISEARCH_HOST') ||
       'http://localhost:7700';
@@ -51,9 +58,7 @@ export class SearchService implements OnModuleInit {
     try {
       await this.client.index('documents').addDocuments([document]);
     } catch (error: any) {
-      throw new InternalServerErrorException(
-        `Failed to sync to Meilisearch: ${error.message}`,
-      );
+      console.warn(`Meilisearch sync failed (non-blocking): ${error.message}`);
     }
   }
 
@@ -61,20 +66,53 @@ export class SearchService implements OnModuleInit {
     try {
       await this.client.index('documents').deleteDocument(id);
     } catch (error: any) {
-      throw new InternalServerErrorException(
-        `Failed to delete from Meilisearch: ${error.message}`,
-      );
+      console.warn(`Meilisearch delete failed (non-blocking): ${error.message}`);
     }
   }
 
-  async search(query: string, filters?: any) {
+  async search(query: string, tenantId?: string, filters?: any) {
     try {
+      const meiliFilters = {
+        ...filters,
+      };
+      if (tenantId) {
+        meiliFilters.filter = filters?.filter 
+          ? `${filters.filter} AND tenantId = ${tenantId}` 
+          : `tenantId = ${tenantId}`;
+      }
       const result = await this.client
         .index('documents')
-        .search(query, filters);
+        .search(query, meiliFilters);
       return result.hits;
     } catch (error: any) {
-      throw new InternalServerErrorException(`Search failed: ${error.message}`);
+      console.warn(`Meilisearch search failed, falling back to PostgreSQL Full-Text Search: ${error.message}`);
+      
+      try {
+        const rows = await this.db.execute(sql`
+          SELECT 
+            d.id, 
+            d.title, 
+            d.description, 
+            d.folder_id AS "folderId", 
+            d.owner_id AS "ownerId", 
+            d.is_archived AS "isArchived",
+            d.created_at AS "createdAt", 
+            d.updated_at AS "updatedAt"
+          FROM documents d
+          WHERE (
+            d.title ILIKE ${'%' + query + '%'}
+            OR d.description ILIKE ${'%' + query + '%'}
+            OR (d.search_vector @@ plainto_tsquery('simple', ${query}))
+          )
+          AND (${tenantId ? sql`d.tenant_id = ${tenantId}` : sql`1=1`})
+          AND d.is_archived = false
+          LIMIT 50
+        `);
+        return rows.rows;
+      } catch (dbError: any) {
+        console.error(`PostgreSQL fallback search failed: ${dbError.message}`);
+        return [];
+      }
     }
   }
 }

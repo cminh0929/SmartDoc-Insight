@@ -54,6 +54,13 @@ export class FoldersService extends BaseService<typeof folders> {
       );
   }
 
+  async findByTenant(tenantId: string) {
+    return this.db
+      .select()
+      .from(folders)
+      .where(eq(folders.tenantId, tenantId));
+  }
+
   async createWithLog(data: any, userId: string) {
     const folder = await this.create(data);
     await this.auditLogsService.log({

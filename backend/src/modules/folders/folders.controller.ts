@@ -34,7 +34,7 @@ export class FoldersController {
         req.user.tenantId,
       );
     }
-    return this.foldersService.findAll(); // Assuming findAll should also be scoped, but let's leave it as is or fix it. Wait, let's just scope findAll too? The plan doesn't mention findAll directly, but let's be safe.
+    return this.foldersService.findByTenant(req.user.tenantId);
   }
 
   @Get(':id')

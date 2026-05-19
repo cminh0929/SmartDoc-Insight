@@ -76,6 +76,23 @@ export class PermissionsService extends BaseService<typeof permissions> {
       throw new NotFoundException('Target user not found');
     }
 
+    // 1.5 Verify both users belong to the same tenant/workspace
+    const callerList = await this.db
+      .select()
+      .from(users)
+      .where(eq(users.id, adminUserId))
+      .limit(1);
+
+    if (callerList.length === 0) {
+      throw new NotFoundException('Admin user not found');
+    }
+    
+    if (userExists[0].tenantId !== callerList[0].tenantId) {
+      throw new ForbiddenException(
+        'You cannot grant permissions to users in a different workspace',
+      );
+    }
+
     // 2. Check if permission already exists for this user/entity
     let existing: any[] = [];
     if (dto.documentId) {
