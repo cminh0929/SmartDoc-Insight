@@ -13,6 +13,7 @@ import { TagsModule } from './modules/tags/tags.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
+import { RagModule } from './modules/rag/rag.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     PermissionsModule,
     RolesModule,
     TenantsModule,
+    RagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -21,6 +21,7 @@
     "test:security": "node scripts/security-load-test.js"
   },
   "dependencies": {
+    "@langchain/textsplitters": "^1.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -32,10 +33,14 @@
     "bcrypt": "^6.0.0",
     "drizzle-orm": "^0.45.2",
     "json2csv": "^6.0.0-alpha.2",
+    "mammoth": "^1.12.0",
     "meilisearch": "^0.33.0",
+    "openai": "^6.38.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.20.0",
+    "pgvector": "^0.2.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "uuid": "^10.0.0"
@@ -50,6 +55,7 @@
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.1.0",
     "@types/node": "^24.0.0",
+    "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.0.0",
     "@types/uuid": "^10.0.0",

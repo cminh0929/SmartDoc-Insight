@@ -11,6 +11,19 @@ import {
   customType,
 } from 'drizzle-orm/pg-core';
 
+// Custom type for pgvector embedding (1536 dims = text-embedding-3-small)
+const vector = customType<{ data: number[]; driverData: string }>({
+  dataType() {
+    return 'vector(1536)';
+  },
+  toDriver(value: number[]): string {
+    return `[${value.join(',')}]`;
+  },
+  fromDriver(value: string): number[] {
+    return value.replace(/[\[\]]/g, '').split(',').map(Number);
+  },
+});
+
 // Custom type for PostgreSQL tsvector
 const tsvector = customType<{ data: string }>({
   dataType() {
@@ -149,4 +162,16 @@ export const permissions = pgTable('permissions', {
   level: permissionLevelEnum('level').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// RAG: Document chunks with vector embeddings
+export const documentChunks = pgTable('document_chunks', {
+  id:          uuid('id').primaryKey().defaultRandom(),
+  documentId:  uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+  versionId:   uuid('version_id').references(() => documentVersions.id, { onDelete: 'cascade' }),
+  tenantId:    uuid('tenant_id').references(() => tenants.id).notNull(),
+  chunkIndex:  integer('chunk_index').notNull(),
+  content:     text('content').notNull(),
+  embedding:   vector('embedding'),
+  createdAt:   timestamp('created_at').defaultNow().notNull(),
 });

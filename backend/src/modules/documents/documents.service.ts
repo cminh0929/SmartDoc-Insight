@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Optional,
 } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { BaseService } from '../../common/base/base.service';
@@ -10,6 +11,7 @@ import { documents } from '../../db/schema';
 import { StorageService } from '../../common/storage/storage.service';
 import { SearchService } from '../search/search.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
+import { RagService } from '../rag/rag.service';
 import { eq, desc, and } from 'drizzle-orm';
 
 @Injectable()
@@ -22,6 +24,7 @@ export class DocumentsService extends BaseService<
     private readonly storageService: StorageService,
     private readonly searchService: SearchService,
     private readonly auditLogsService: AuditLogsService,
+    @Optional() private readonly ragService: RagService,
   ) {
     super(db, documents);
   }
@@ -138,6 +141,22 @@ export class DocumentsService extends BaseService<
         entityId: doc.id,
         details: `Created document: ${doc.title}`,
       });
+
+      // 6. Trigger async RAG indexing (fire-and-forget, does NOT block response)
+      if (this.ragService) {
+        const versions = await this.db
+          .select()
+          .from(schema.documentVersions)
+          .where(eq(schema.documentVersions.documentId, doc.id))
+          .orderBy(desc(schema.documentVersions.versionNumber))
+          .limit(1);
+        if (versions.length > 0) {
+          const v = versions[0];
+          this.ragService
+            .indexDocument(doc.id, v.id, v.fileKey, v.mimeType ?? '', data.tenantId)
+            .catch((err) => console.error('RAG indexing failed:', err.message));
+        }
+      }
 
       return doc;
     } catch (error: any) {

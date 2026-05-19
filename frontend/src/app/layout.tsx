@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { AuthProvider } from "@/context/auth-context";
 import { usePathname } from "next/navigation";
+import AiAssistantPanel from "@/components/ai/AiAssistantPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
                   {children}
                 </main>
               </div>
+              <AiAssistantPanel />
             </div>
           )}
         </AuthProvider>
