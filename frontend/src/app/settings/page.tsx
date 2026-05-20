@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useAuth } from "@/context/auth-context"
-import { 
-  Settings, 
-  User, 
-  Shield, 
-  Database, 
-  Server, 
-  Terminal, 
-  Cpu, 
-  Monitor, 
+import * as React from "react";
+import { useAuth } from "@/context/auth-context";
+import {
+  Settings,
+  User,
+  Shield,
+  Database,
+  Server,
+  Terminal,
+  Cpu,
+  Monitor,
   CheckCircle2,
   Users,
   Plus,
@@ -25,106 +25,111 @@ import {
   Share2,
   Building2,
   Copy,
-  Hash
-} from "lucide-react"
+  Hash,
+} from "lucide-react";
 
 interface Role {
-  id: string
-  name: string
-  description: string
-  canCreateRootFolders: boolean
-  canUploadRootDocs: boolean
-  canViewAuditLogs: boolean
-  canManageSharing: boolean
-  createdAt: string
+  id: string;
+  name: string;
+  description: string;
+  canCreateRootFolders: boolean;
+  canUploadRootDocs: boolean;
+  canViewAuditLogs: boolean;
+  canManageSharing: boolean;
+  createdAt: string;
 }
 
 export default function SettingsPage() {
-  const { user, token } = useAuth()
-  const [activeTab, setActiveTab] = React.useState<"profile" | "roles">("profile")
-  
+  const { user, token } = useAuth();
+  const [activeTab, setActiveTab] = React.useState<"profile" | "roles">(
+    "profile",
+  );
+
   // Roles Management state
-  const [rolesList, setRolesList] = React.useState<Role[]>([])
-  const [loadingRoles, setLoadingRoles] = React.useState(false)
-  const [newRoleName, setNewRoleName] = React.useState("")
-  const [newRoleDesc, setNewRoleDesc] = React.useState("")
-  
+  const [rolesList, setRolesList] = React.useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = React.useState(false);
+  const [newRoleName, setNewRoleName] = React.useState("");
+  const [newRoleDesc, setNewRoleDesc] = React.useState("");
+
   // New role permissions checkboxes
-  const [pCreateRoot, setPCreateRoot] = React.useState(false)
-  const [pUploadRoot, setPUploadRoot] = React.useState(false)
-  const [pViewLogs, setPViewLogs] = React.useState(false)
-  const [pManageSharing, setPManageSharing] = React.useState(false)
-  
-  const [actionLoading, setActionLoading] = React.useState(false)
-  const [successMsg, setSuccessMsg] = React.useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null)
+  const [pCreateRoot, setPCreateRoot] = React.useState(false);
+  const [pUploadRoot, setPUploadRoot] = React.useState(false);
+  const [pViewLogs, setPViewLogs] = React.useState(false);
+  const [pManageSharing, setPManageSharing] = React.useState(false);
 
-  const [workspaceInfo, setWorkspaceInfo] = React.useState<any>(null)
+  const [actionLoading, setActionLoading] = React.useState(false);
+  const [successMsg, setSuccessMsg] = React.useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
-  const showRolesTab = user?.role === "admin" || user?.role === "staff" || user?.role === "IT Manager"
+  const [workspaceInfo, setWorkspaceInfo] = React.useState<any>(null);
+
+  const showRolesTab =
+    user?.role === "admin" ||
+    user?.role === "staff" ||
+    user?.role === "IT Manager";
 
   const fetchWorkspace = React.useCallback(async () => {
     try {
       const res = await fetch("http://localhost:3001/tenants/my-workspace", {
-        headers: { "Authorization": `Bearer ${token}` }
-      })
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (res.ok) {
-        const data = await res.json()
-        setWorkspaceInfo(data)
+        const data = await res.json();
+        setWorkspaceInfo(data);
       }
     } catch (err) {
-      console.error("Failed to fetch workspace:", err)
+      console.error("Failed to fetch workspace:", err);
     }
-  }, [token])
+  }, [token]);
 
   const fetchRoles = React.useCallback(async () => {
-    setLoadingRoles(true)
+    setLoadingRoles(true);
     try {
-      const res = await fetch("http://localhost:3001/roles")
+      const res = await fetch("http://localhost:3001/roles");
       if (res.ok) {
-        const data = await res.json()
-        setRolesList(data)
+        const data = await res.json();
+        setRolesList(data);
       }
     } catch (err) {
-      console.error("Failed to fetch roles:", err)
+      console.error("Failed to fetch roles:", err);
     } finally {
-      setLoadingRoles(false)
+      setLoadingRoles(false);
     }
-  }, [])
+  }, []);
 
   React.useEffect(() => {
     if (activeTab === "roles") {
-      fetchRoles()
+      fetchRoles();
     } else if (activeTab === "profile" && token) {
-      fetchWorkspace()
+      fetchWorkspace();
     }
-  }, [activeTab, fetchRoles, fetchWorkspace, token])
+  }, [activeTab, fetchRoles, fetchWorkspace, token]);
 
   // Clear notifications after 4 seconds
   React.useEffect(() => {
     if (successMsg || errorMsg) {
       const timer = setTimeout(() => {
-        setSuccessMsg(null)
-        setErrorMsg(null)
-      }, 4000)
-      return () => clearTimeout(timer)
+        setSuccessMsg(null);
+        setErrorMsg(null);
+      }, 4000);
+      return () => clearTimeout(timer);
     }
-  }, [successMsg, errorMsg])
+  }, [successMsg, errorMsg]);
 
   const handleCreateRole = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newRoleName.trim()) return
+    e.preventDefault();
+    if (!newRoleName.trim()) return;
 
-    setActionLoading(true)
-    setErrorMsg(null)
-    setSuccessMsg(null)
+    setActionLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch("http://localhost:3001/roles", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: newRoleName,
@@ -132,97 +137,102 @@ export default function SettingsPage() {
           canCreateRootFolders: pCreateRoot,
           canUploadRootDocs: pUploadRoot,
           canViewAuditLogs: pViewLogs,
-          canManageSharing: pManageSharing
-        })
-      })
+          canManageSharing: pManageSharing,
+        }),
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to create custom role")
+        throw new Error(data.message || "Failed to create custom role");
       }
 
-      setSuccessMsg(`Role "${newRoleName}" created successfully!`)
-      setNewRoleName("")
-      setNewRoleDesc("")
-      setPCreateRoot(false)
-      setPUploadRoot(false)
-      setPViewLogs(false)
-      setPManageSharing(false)
-      fetchRoles()
+      setSuccessMsg(`Role "${newRoleName}" created successfully!`);
+      setNewRoleName("");
+      setNewRoleDesc("");
+      setPCreateRoot(false);
+      setPUploadRoot(false);
+      setPViewLogs(false);
+      setPManageSharing(false);
+      fetchRoles();
     } catch (err: any) {
-      setErrorMsg(err.message)
+      setErrorMsg(err.message);
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   const handleDeleteRole = async (roleId: string, roleName: string) => {
-    if (!confirm(`Are you sure you want to delete the custom role "${roleName}"?`)) return
+    if (
+      !confirm(`Are you sure you want to delete the custom role "${roleName}"?`)
+    )
+      return;
 
-    setActionLoading(true)
-    setErrorMsg(null)
-    setSuccessMsg(null)
+    setActionLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch(`http://localhost:3001/roles/${roleId}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to delete role")
+        throw new Error(data.message || "Failed to delete role");
       }
 
-      setSuccessMsg(`Role "${roleName}" deleted successfully!`)
-      fetchRoles()
+      setSuccessMsg(`Role "${roleName}" deleted successfully!`);
+      fetchRoles();
     } catch (err: any) {
-      setErrorMsg(err.message)
+      setErrorMsg(err.message);
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   const handleTogglePermission = async (role: Role, field: keyof Role) => {
     if (["admin", "staff", "intern"].includes(role.name)) {
-      setErrorMsg("Cannot modify core system roles. Create a custom role to customize permissions.")
-      return
+      setErrorMsg(
+        "Cannot modify core system roles. Create a custom role to customize permissions.",
+      );
+      return;
     }
 
-    const updatedValue = !role[field]
-    setActionLoading(true)
-    setErrorMsg(null)
+    const updatedValue = !role[field];
+    setActionLoading(true);
+    setErrorMsg(null);
 
     try {
       const res = await fetch(`http://localhost:3001/roles/${role.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          [field]: updatedValue
-        })
-      })
+          [field]: updatedValue,
+        }),
+      });
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || "Failed to update role permissions")
+        throw new Error(data.message || "Failed to update role permissions");
       }
 
-      setSuccessMsg(`Permissions updated for role "${role.name}"!`)
-      fetchRoles()
+      setSuccessMsg(`Permissions updated for role "${role.name}"!`);
+      fetchRoles();
     } catch (err: any) {
-      setErrorMsg(err.message)
+      setErrorMsg(err.message);
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-12">
@@ -234,7 +244,8 @@ export default function SettingsPage() {
             System & Role Settings
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your personal profile, services status, and configure custom security roles.
+            Manage your personal profile, services status, and configure custom
+            security roles.
           </p>
         </div>
 
@@ -244,8 +255,8 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab("profile")}
               className={`px-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all ${
-                activeTab === "profile" 
-                  ? "bg-background text-foreground shadow-sm" 
+                activeTab === "profile"
+                  ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -254,8 +265,8 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab("roles")}
               className={`px-4 py-2 rounded-lg text-sm font-bold tracking-wide transition-all flex items-center gap-1.5 ${
-                activeTab === "roles" 
-                  ? "bg-background text-foreground shadow-sm" 
+                activeTab === "roles"
+                  ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -334,7 +345,7 @@ export default function SettingsPage() {
                     <h2 className="font-bold text-lg">Enterprise Workspace</h2>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">
@@ -354,10 +365,12 @@ export default function SettingsPage() {
                         <Hash size={16} />
                         {workspaceInfo.workspace.tenantCode}
                       </div>
-                      <button 
+                      <button
                         onClick={() => {
-                          navigator.clipboard.writeText(workspaceInfo.workspace.tenantCode)
-                          setSuccessMsg("Invite code copied!")
+                          navigator.clipboard.writeText(
+                            workspaceInfo.workspace.tenantCode,
+                          );
+                          setSuccessMsg("Invite code copied!");
                         }}
                         className="bg-accent hover:bg-accent/80 p-3 rounded-xl transition-all"
                         title="Copy Code"
@@ -369,13 +382,16 @@ export default function SettingsPage() {
                       Share this code for employees to join your organization.
                     </p>
                   </div>
-                  
+
                   <div>
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">
                       Active Roster
                     </label>
                     <div className="bg-accent/40 px-4 py-2.5 rounded-xl text-sm font-semibold flex justify-between items-center">
-                      <span>{workspaceInfo.employees?.length || 0} Employees Enrolled</span>
+                      <span>
+                        {workspaceInfo.employees?.length || 0} Employees
+                        Enrolled
+                      </span>
                       <Users size={16} className="text-muted-foreground" />
                     </div>
                   </div>
@@ -389,9 +405,11 @@ export default function SettingsPage() {
                 <Monitor className="text-primary" size={22} />
                 <h2 className="font-bold text-lg">Aesthetic Preferences</h2>
               </div>
-              
+
               <p className="text-sm text-muted-foreground leading-relaxed">
-                This application is styled natively using premium **Tailwind CSS v4** variables, supporting seamless, beautifully animated light and dark theme switching.
+                This application is styled natively using premium **Tailwind CSS
+                v4** variables, supporting seamless, beautifully animated light
+                and dark theme switching.
               </p>
               <div className="mt-4 p-4 bg-primary/5 border border-primary/10 rounded-xl text-xs text-primary font-medium flex items-center gap-2">
                 <CheckCircle2 size={16} />
@@ -404,11 +422,14 @@ export default function SettingsPage() {
           <div className="bg-card rounded-2xl border p-6 hover:shadow-md transition-all">
             <div className="flex items-center gap-3 border-b pb-4 mb-4">
               <Server className="text-primary" size={22} />
-              <h2 className="font-bold text-lg">System Infrastructure Status</h2>
+              <h2 className="font-bold text-lg">
+                System Infrastructure Status
+              </h2>
             </div>
 
             <p className="text-sm text-muted-foreground mb-6">
-              The platform is running entirely as a Native Windows stack under background process orchestration.
+              The platform is running entirely as a Native Windows stack under
+              background process orchestration.
             </p>
 
             <div className="space-y-4">
@@ -420,7 +441,9 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">NestJS Backend API</h4>
-                    <p className="text-[10px] text-muted-foreground font-mono">Port: 3001 | Host listener</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      Port: 3001 | Host listener
+                    </p>
                   </div>
                 </div>
                 <span className="bg-green-500/10 text-green-500 dark:bg-green-500/20 text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 border border-green-500/20">
@@ -437,7 +460,9 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">Meilisearch Indexer</h4>
-                    <p className="text-[10px] text-muted-foreground font-mono">Port: 7700 | Master-key</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      Port: 7700 | Master-key
+                    </p>
                   </div>
                 </div>
                 <span className="bg-green-500/10 text-green-500 dark:bg-green-500/20 text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 border border-green-500/20">
@@ -454,7 +479,9 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">PostgreSQL CSDL</h4>
-                    <p className="text-[10px] text-muted-foreground font-mono">Port: 5432 | Windows Service</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      Port: 5432 | Windows Service
+                    </p>
                   </div>
                 </div>
                 <span className="bg-green-500/10 text-green-500 dark:bg-green-500/20 text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 border border-green-500/20">
@@ -471,7 +498,9 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm">PM2 Process Manager</h4>
-                    <p className="text-[10px] text-muted-foreground font-mono">3 Live Tasks | Save: dump.pm2</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      3 Live Tasks | Save: dump.pm2
+                    </p>
                   </div>
                 </div>
                 <span className="bg-green-500/10 text-green-500 dark:bg-green-500/20 text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 border border-green-500/20">
@@ -490,9 +519,13 @@ export default function SettingsPage() {
               <Shield size={24} />
             </div>
             <div className="space-y-1">
-              <h3 className="font-bold text-lg">Granular Role-Based Access Control (RBAC)</h3>
+              <h3 className="font-bold text-lg">
+                Granular Role-Based Access Control (RBAC)
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                As a Manager, you can create and configure custom security roles. Simply select the checkboxes below each role to live-update their system-wide privileges!
+                As a Manager, you can create and configure custom security
+                roles. Simply select the checkboxes below each role to
+                live-update their system-wide privileges!
               </p>
             </div>
           </div>
@@ -505,7 +538,12 @@ export default function SettingsPage() {
                   <Users className="text-primary" size={20} />
                   Active System & Custom Roles
                 </h3>
-                {loadingRoles && <Loader2 className="animate-spin text-muted-foreground" size={18} />}
+                {loadingRoles && (
+                  <Loader2
+                    className="animate-spin text-muted-foreground"
+                    size={18}
+                  />
+                )}
               </div>
 
               {rolesList.length === 0 && !loadingRoles ? (
@@ -515,12 +553,16 @@ export default function SettingsPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {rolesList.map((role) => {
-                    const isSystemRole = ["admin", "staff", "intern"].includes(role.name)
+                    const isSystemRole = ["admin", "staff", "intern"].includes(
+                      role.name,
+                    );
                     return (
-                      <div 
-                        key={role.id} 
+                      <div
+                        key={role.id}
                         className={`bg-card rounded-2xl border p-5 transition-all hover:shadow-md flex flex-col justify-between relative ${
-                          isSystemRole ? "border-accent bg-accent/10" : "border-primary/20 shadow-sm"
+                          isSystemRole
+                            ? "border-accent bg-accent/10"
+                            : "border-primary/20 shadow-sm"
                         }`}
                       >
                         {/* Card Header */}
@@ -539,10 +581,12 @@ export default function SettingsPage() {
                                 {role.description || "No description provided."}
                               </p>
                             </div>
-                            
+
                             {!isSystemRole && (
                               <button
-                                onClick={() => handleDeleteRole(role.id, role.name)}
+                                onClick={() =>
+                                  handleDeleteRole(role.id, role.name)
+                                }
                                 className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-destructive/5 transition-all shrink-0"
                                 title="Delete Custom Role"
                               >
@@ -553,78 +597,126 @@ export default function SettingsPage() {
 
                           {/* Checkbox Toggles for Permissions */}
                           <div className="border-t pt-4 mt-3 space-y-2.5">
-                            <label 
+                            <label
                               className={`flex items-center justify-between text-xs font-medium cursor-pointer p-1.5 rounded-lg transition-all ${
-                                isSystemRole ? "opacity-75 cursor-not-allowed" : "hover:bg-accent/40"
+                                isSystemRole
+                                  ? "opacity-75 cursor-not-allowed"
+                                  : "hover:bg-accent/40"
                               }`}
-                              onClick={() => !isSystemRole && handleTogglePermission(role, "canCreateRootFolders")}
+                              onClick={() =>
+                                !isSystemRole &&
+                                handleTogglePermission(
+                                  role,
+                                  "canCreateRootFolders",
+                                )
+                              }
                             >
                               <span className="flex items-center gap-2">
-                                <FolderPlus size={14} className="text-muted-foreground" />
+                                <FolderPlus
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />
                                 Create Root Folders
                               </span>
-                              <div className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
-                                role.canCreateRootFolders 
-                                  ? "bg-primary border-primary text-primary-foreground" 
-                                  : "border-muted-foreground"
-                              }`}>
-                                {role.canCreateRootFolders && <Check size={12} />}
+                              <div
+                                className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
+                                  role.canCreateRootFolders
+                                    ? "bg-primary border-primary text-primary-foreground"
+                                    : "border-muted-foreground"
+                                }`}
+                              >
+                                {role.canCreateRootFolders && (
+                                  <Check size={12} />
+                                )}
                               </div>
                             </label>
 
-                            <label 
+                            <label
                               className={`flex items-center justify-between text-xs font-medium cursor-pointer p-1.5 rounded-lg transition-all ${
-                                isSystemRole ? "opacity-75 cursor-not-allowed" : "hover:bg-accent/40"
+                                isSystemRole
+                                  ? "opacity-75 cursor-not-allowed"
+                                  : "hover:bg-accent/40"
                               }`}
-                              onClick={() => !isSystemRole && handleTogglePermission(role, "canUploadRootDocs")}
+                              onClick={() =>
+                                !isSystemRole &&
+                                handleTogglePermission(
+                                  role,
+                                  "canUploadRootDocs",
+                                )
+                              }
                             >
                               <span className="flex items-center gap-2">
-                                <FileUp size={14} className="text-muted-foreground" />
+                                <FileUp
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />
                                 Upload Root Documents
                               </span>
-                              <div className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
-                                role.canUploadRootDocs 
-                                  ? "bg-primary border-primary text-primary-foreground" 
-                                  : "border-muted-foreground"
-                              }`}>
+                              <div
+                                className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
+                                  role.canUploadRootDocs
+                                    ? "bg-primary border-primary text-primary-foreground"
+                                    : "border-muted-foreground"
+                                }`}
+                              >
                                 {role.canUploadRootDocs && <Check size={12} />}
                               </div>
                             </label>
 
-                            <label 
+                            <label
                               className={`flex items-center justify-between text-xs font-medium cursor-pointer p-1.5 rounded-lg transition-all ${
-                                isSystemRole ? "opacity-75 cursor-not-allowed" : "hover:bg-accent/40"
+                                isSystemRole
+                                  ? "opacity-75 cursor-not-allowed"
+                                  : "hover:bg-accent/40"
                               }`}
-                              onClick={() => !isSystemRole && handleTogglePermission(role, "canViewAuditLogs")}
+                              onClick={() =>
+                                !isSystemRole &&
+                                handleTogglePermission(role, "canViewAuditLogs")
+                              }
                             >
                               <span className="flex items-center gap-2">
-                                <History size={14} className="text-muted-foreground" />
+                                <History
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />
                                 View Audit Logs
                               </span>
-                              <div className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
-                                role.canViewAuditLogs 
-                                  ? "bg-primary border-primary text-primary-foreground" 
-                                  : "border-muted-foreground"
-                              }`}>
+                              <div
+                                className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
+                                  role.canViewAuditLogs
+                                    ? "bg-primary border-primary text-primary-foreground"
+                                    : "border-muted-foreground"
+                                }`}
+                              >
                                 {role.canViewAuditLogs && <Check size={12} />}
                               </div>
                             </label>
 
-                            <label 
+                            <label
                               className={`flex items-center justify-between text-xs font-medium cursor-pointer p-1.5 rounded-lg transition-all ${
-                                isSystemRole ? "opacity-75 cursor-not-allowed" : "hover:bg-accent/40"
+                                isSystemRole
+                                  ? "opacity-75 cursor-not-allowed"
+                                  : "hover:bg-accent/40"
                               }`}
-                              onClick={() => !isSystemRole && handleTogglePermission(role, "canManageSharing")}
+                              onClick={() =>
+                                !isSystemRole &&
+                                handleTogglePermission(role, "canManageSharing")
+                              }
                             >
                               <span className="flex items-center gap-2">
-                                <Share2 size={14} className="text-muted-foreground" />
+                                <Share2
+                                  size={14}
+                                  className="text-muted-foreground"
+                                />
                                 Manage Sharing
                               </span>
-                              <div className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
-                                role.canManageSharing 
-                                  ? "bg-primary border-primary text-primary-foreground" 
-                                  : "border-muted-foreground"
-                              }`}>
+                              <div
+                                className={`w-4 h-4 border rounded flex items-center justify-center transition-all ${
+                                  role.canManageSharing
+                                    ? "bg-primary border-primary text-primary-foreground"
+                                    : "border-muted-foreground"
+                                }`}
+                              >
                                 {role.canManageSharing && <Check size={12} />}
                               </div>
                             </label>
@@ -639,7 +731,7 @@ export default function SettingsPage() {
                           </div>
                         )}
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -653,7 +745,8 @@ export default function SettingsPage() {
                   Add Custom Role
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Define a new organizational role with tailored, checkbox-toggled permission flags.
+                  Define a new organizational role with tailored,
+                  checkbox-toggled permission flags.
                 </p>
               </div>
 
@@ -770,5 +863,5 @@ export default function SettingsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

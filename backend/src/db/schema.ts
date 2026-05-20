@@ -46,7 +46,9 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   fullName: varchar('full_name', { length: 255 }).notNull(),
-  password: text('password').notNull(),
+  password: text('password'),
+  googleId: varchar('google_id', { length: 255 }),
+  provider: varchar('provider', { length: 50 }).default('local').notNull(),
   role: varchar('role', { length: 255 }).default('intern').notNull(),
   tenantId: uuid('tenant_id').references(() => tenants.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -166,12 +168,18 @@ export const permissions = pgTable('permissions', {
 
 // RAG: Document chunks with vector embeddings
 export const documentChunks = pgTable('document_chunks', {
-  id:          uuid('id').primaryKey().defaultRandom(),
-  documentId:  uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
-  versionId:   uuid('version_id').references(() => documentVersions.id, { onDelete: 'cascade' }),
-  tenantId:    uuid('tenant_id').references(() => tenants.id).notNull(),
-  chunkIndex:  integer('chunk_index').notNull(),
-  content:     text('content').notNull(),
-  embedding:   vector('embedding'),
-  createdAt:   timestamp('created_at').defaultNow().notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  documentId: uuid('document_id')
+    .references(() => documents.id, { onDelete: 'cascade' })
+    .notNull(),
+  versionId: uuid('version_id').references(() => documentVersions.id, {
+    onDelete: 'cascade',
+  }),
+  tenantId: uuid('tenant_id')
+    .references(() => tenants.id)
+    .notNull(),
+  chunkIndex: integer('chunk_index').notNull(),
+  content: text('content').notNull(),
+  embedding: vector('embedding'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });

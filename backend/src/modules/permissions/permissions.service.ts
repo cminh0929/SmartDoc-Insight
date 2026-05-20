@@ -86,7 +86,7 @@ export class PermissionsService extends BaseService<typeof permissions> {
     if (callerList.length === 0) {
       throw new NotFoundException('Admin user not found');
     }
-    
+
     if (userExists[0].tenantId !== callerList[0].tenantId) {
       throw new ForbiddenException(
         'You cannot grant permissions to users in a different workspace',

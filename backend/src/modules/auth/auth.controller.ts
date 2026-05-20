@@ -13,8 +13,6 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-
-
   @Post('register')
   async register(@Body() data: any) {
     return this.authService.register(data);

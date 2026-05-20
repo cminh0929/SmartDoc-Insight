@@ -32,7 +32,10 @@ export class DashboardService {
         total: sql<number>`COALESCE(SUM(${documentVersions.fileSize}), 0)`,
       })
       .from(documentVersions)
-      .innerJoin(documents, sql`${documents.id} = ${documentVersions.documentId}`);
+      .innerJoin(
+        documents,
+        sql`${documents.id} = ${documentVersions.documentId}`,
+      );
     if (tenantId) {
       storageQuery.where(eq(documents.tenantId, tenantId));
     }

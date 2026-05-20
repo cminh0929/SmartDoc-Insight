@@ -39,11 +39,15 @@ export class DocumentParserService {
       } else if (mimeType.startsWith('text/')) {
         rawText = fs.readFileSync(filePath, 'utf8');
       } else {
-        this.logger.warn(`Unsupported MIME type for RAG: ${mimeType}. Skipping.`);
+        this.logger.warn(
+          `Unsupported MIME type for RAG: ${mimeType}. Skipping.`,
+        );
         return [];
       }
     } catch (error: any) {
-      this.logger.error(`Failed to extract text from ${fileKey}: ${error.message}`);
+      this.logger.error(
+        `Failed to extract text from ${fileKey}: ${error.message}`,
+      );
       return [];
     }
 

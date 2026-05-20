@@ -9,7 +9,12 @@ import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 import { RagModule } from '../rag/rag.module';
 
 @Module({
-  imports: [StorageModule, SearchModule, AuditLogsModule, forwardRef(() => RagModule)],
+  imports: [
+    StorageModule,
+    SearchModule,
+    AuditLogsModule,
+    forwardRef(() => RagModule),
+  ],
   controllers: [DocumentsController, VersionsController],
   providers: [DocumentsService, VersionsService],
   exports: [DocumentsService, VersionsService],

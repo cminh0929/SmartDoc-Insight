@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MeiliSearch, Index } from 'meilisearch';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -66,7 +62,9 @@ export class SearchService implements OnModuleInit {
     try {
       await this.client.index('documents').deleteDocument(id);
     } catch (error: any) {
-      console.warn(`Meilisearch delete failed (non-blocking): ${error.message}`);
+      console.warn(
+        `Meilisearch delete failed (non-blocking): ${error.message}`,
+      );
     }
   }
 
@@ -76,8 +74,8 @@ export class SearchService implements OnModuleInit {
         ...filters,
       };
       if (tenantId) {
-        meiliFilters.filter = filters?.filter 
-          ? `${filters.filter} AND tenantId = ${tenantId}` 
+        meiliFilters.filter = filters?.filter
+          ? `${filters.filter} AND tenantId = ${tenantId}`
           : `tenantId = ${tenantId}`;
       }
       const result = await this.client
@@ -85,8 +83,10 @@ export class SearchService implements OnModuleInit {
         .search(query, meiliFilters);
       return result.hits;
     } catch (error: any) {
-      console.warn(`Meilisearch search failed, falling back to PostgreSQL Full-Text Search: ${error.message}`);
-      
+      console.warn(
+        `Meilisearch search failed, falling back to PostgreSQL Full-Text Search: ${error.message}`,
+      );
+
       try {
         const rows = await this.db.execute(sql`
           SELECT 
