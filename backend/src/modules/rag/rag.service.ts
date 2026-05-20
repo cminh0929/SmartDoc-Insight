@@ -37,7 +37,8 @@ export class RagService {
     private readonly parserService: DocumentParserService,
     private readonly configService: ConfigService,
   ) {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY') || 'placeholder';
+    const apiKey =
+      this.configService.get<string>('OPENAI_API_KEY') || 'placeholder';
     this.openai = new OpenAI({ apiKey });
     this.topK = this.configService.get<number>('RAG_TOP_K') ?? 5;
   }
@@ -58,13 +59,13 @@ export class RagService {
     this.logger.log(`Indexing document ${documentId} (version ${versionId})`);
 
     // Delete existing chunks for this version (idempotent re-index)
-    await this.db
-      .delete(documentChunks)
-      .where(sql`version_id = ${versionId}`);
+    await this.db.delete(documentChunks).where(sql`version_id = ${versionId}`);
 
     const chunks = await this.parserService.extractAndChunk(fileKey, mimeType);
     if (chunks.length === 0) {
-      this.logger.warn(`No text extracted from document ${documentId}. Skipping index.`);
+      this.logger.warn(
+        `No text extracted from document ${documentId}. Skipping index.`,
+      );
       return;
     }
 
@@ -147,7 +148,8 @@ Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng, dạng bullet point 
       max_tokens: 1024,
     });
 
-    const answer = completion.choices[0]?.message?.content ?? 'Không có câu trả lời.';
+    const answer =
+      completion.choices[0]?.message?.content ?? 'Không có câu trả lời.';
 
     // 6. Deduplicate sources
     const seen = new Set<string>();

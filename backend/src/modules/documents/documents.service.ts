@@ -156,7 +156,13 @@ export class DocumentsService extends BaseService<
         if (versions.length > 0) {
           const v = versions[0];
           this.ragService
-            .indexDocument(doc.id, v.id, v.fileKey, v.mimeType ?? '', data.tenantId)
+            .indexDocument(
+              doc.id,
+              v.id,
+              v.fileKey,
+              v.mimeType ?? '',
+              data.tenantId,
+            )
             .catch((err) => console.error('RAG indexing failed:', err.message));
         }
       }

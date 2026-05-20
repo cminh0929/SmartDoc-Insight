@@ -89,7 +89,9 @@ export class RolesService {
 
     // Tenant isolation verification: Cannot update global system roles or roles from other tenants
     if (existing.tenantId !== tenantId) {
-      throw new ForbiddenException('You do not have permission to modify this role');
+      throw new ForbiddenException(
+        'You do not have permission to modify this role',
+      );
     }
 
     const [updatedRole] = await this.db
@@ -132,13 +134,18 @@ export class RolesService {
     }
 
     // Do not allow deleting system-critical roles
-    if (['admin', 'staff', 'intern'].includes(existing.name) || !existing.tenantId) {
+    if (
+      ['admin', 'staff', 'intern'].includes(existing.name) ||
+      !existing.tenantId
+    ) {
       throw new ConflictException('System critical roles cannot be deleted');
     }
 
     // Tenant isolation verification
     if (existing.tenantId !== tenantId) {
-      throw new ForbiddenException('You do not have permission to delete this role');
+      throw new ForbiddenException(
+        'You do not have permission to delete this role',
+      );
     }
 
     await this.db.delete(roles).where(eq(roles.id, id));

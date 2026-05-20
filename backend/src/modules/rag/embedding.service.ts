@@ -11,7 +11,9 @@ export class EmbeddingService {
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     if (!apiKey) {
-      this.logger.warn('OPENAI_API_KEY not set — RAG embeddings will be disabled.');
+      this.logger.warn(
+        'OPENAI_API_KEY not set — RAG embeddings will be disabled.',
+      );
     }
     this.openai = new OpenAI({ apiKey: apiKey || 'placeholder' });
   }
