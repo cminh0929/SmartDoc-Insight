@@ -1,0 +1,37 @@
+erDiagram
+    TENANTS ||--o{ USERS : "has"
+    TENANTS ||--o{ FOLDERS : "owns"
+    TENANTS ||--o{ ROLES : "defines"
+    TENANTS ||--o{ DOCUMENT_CHUNKS : "isolates"
+    ROLES ||--o{ USERS : "assigned to"
+    FOLDERS ||--o{ FOLDERS : "parent folder"
+    FOLDERS ||--o{ DOCUMENTS : "contains"
+    DOCUMENTS ||--o{ DOCUMENT_VERSIONS : "keeps history"
+    DOCUMENTS ||--o{ DOCUMENT_CHUNKS : "is vectorized into"
+    DOCUMENTS ||--o{ AUDIT_LOGS : "generates"
+    USERS ||--o{ AUDIT_LOGS : "performs"
+    TENANTS {
+        uuid id PK
+        string name
+        string invite_code
+    }
+    USERS {
+        uuid id PK
+        string email
+        uuid tenant_id FK
+        uuid role_id FK
+    }
+    DOCUMENTS {
+        uuid id PK
+        string title
+        text content
+        uuid folder_id FK
+        uuid tenant_id FK
+    }
+    DOCUMENT_CHUNKS {
+        uuid id PK
+        uuid document_id FK
+        uuid tenant_id FK
+        text content
+        vector embedding
+    }

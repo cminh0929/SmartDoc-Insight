@@ -1,0 +1,50 @@
+graph TD
+    classDef client fill:#2563eb,stroke:#1d4ed8,stroke-width:2px,color:#fff
+    classDef server fill:#059669,stroke:#047857,stroke-width:2px,color:#fff
+    classDef db fill:#d97706,stroke:#b45309,stroke-width:2px,color:#fff
+    classDef search fill:#dc2626,stroke:#b91c1c,stroke-width:2px,color:#fff
+    classDef tenant fill:#f3f4f6,stroke:#6b7280,stroke-width:2px,stroke-dasharray:5 5
+
+    subgraph ClientLayer["Client Layer"]
+        UI["Next.js Web App\nReact, Tailwind CSS, Shadcn UI"]:::client
+    end
+
+    subgraph ServerLayer["Backend Layer"]
+        API["NestJS API Gateway\nREST API, JWT Guard"]:::server
+        Auth["Authentication and Tenant Service"]:::server
+        Doc["Document and Folder Service"]:::server
+        RBAC["Role and Permission Service"]:::server
+        Logs["Audit Log Service"]:::server
+        RAG["RAG AI Service"]:::server
+        API --> Auth
+        API --> Doc
+        API --> RBAC
+        API --> Logs
+        API --> RAG
+    end
+
+    subgraph StorageLayer["Data and Intelligence Layer"]
+        DB[("PostgreSQL\nDrizzle ORM")]:::db
+        Vector[("PGVector\nVector Storage")]:::db
+        Search[("Meilisearch\nFull-text Search")]:::search
+        FS[/"Local File Storage\nUploaded Files"/]:::db
+        LLM[("OpenAI or Gemini\nEmbeddings and Generation")]:::search
+    end
+
+    subgraph Boundary["SaaS Logical Boundary"]
+        TenantA["Tenant A Workspace"]:::tenant
+        TenantB["Tenant B Workspace"]:::tenant
+    end
+
+    UI -- "HTTP REST\nJSON and JWT" --> API
+    Auth -- "Validate identity and invite code" --> DB
+    Doc -- "Store metadata and tenantId" --> DB
+    Doc -- "Store uploaded files" --> FS
+    Doc -- "Index searchable content" --> Search
+    RBAC -- "Evaluate policy" --> DB
+    Logs -- "Record immutable events" --> DB
+    RAG -- "Cosine similarity search" --> Vector
+    RAG -- "Embed queries and generate answers" --> LLM
+    DB -. "Scoped by tenantId" .-> Boundary
+    Vector -. "Scoped by tenantId" .-> Boundary
+    Search -. "Filtered by tenantId" .-> Boundary

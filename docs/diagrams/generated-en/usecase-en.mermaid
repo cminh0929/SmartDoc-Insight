@@ -1,0 +1,27 @@
+flowchart LR
+    Admin([System Admin\nEnterprise Administrator])
+    Manager([IT Manager\nTeam Lead])
+    Tech([Helpdesk Technician\nField Engineer])
+
+    subgraph SmartDoc["SmartDoc Insight SaaS"]
+        UC1("Create and Manage Workspace")
+        UC2("Configure Custom Roles")
+        UC3("Monitor Audit Logs")
+        UC4("Manage Folder Structure")
+        UC5("Create and Update SOPs")
+        UC6("Restore Document Versions")
+        UC7("Search Documents Instantly")
+        UC8("Ask the RAG AI Assistant")
+    end
+
+    Admin --> UC1
+    Admin --> UC2
+    Admin --> UC3
+    Manager --> UC4
+    Manager --> UC5
+    Manager --> UC6
+    Manager --> UC3
+    Manager --> UC8
+    Tech --> UC7
+    Tech --> UC8
+    Tech -. "If authorized" .-> UC5

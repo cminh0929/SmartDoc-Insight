@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    actor Tech as Helpdesk Technician
+    participant Chat as RAG Chat UI
+    participant API as NestJS RAG Service
+    participant Vector as PGVector Database
+    participant LLM as OpenAI or Gemini
+    Tech->>Chat: Ask a technical question
+    Chat->>API: Send query with JWT context
+    API->>LLM: Generate embedding for the question
+    LLM-->>API: Return query vector
+    API->>Vector: Search similar chunks with tenantId filter
+    Vector-->>API: Return top matching chunks
+    API->>LLM: Send context, question, and answer instructions
+    LLM-->>API: Return answer with citations
+    API-->>Chat: Display answer and source cards

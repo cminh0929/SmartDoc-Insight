@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    actor Tech as Helpdesk Technician
+    participant FE as Next.js Frontend
+    participant API as NestJS Backend
+    participant DB as PostgreSQL
+    participant Worker as Background Worker
+    participant Meili as Meilisearch
+    Tech->>FE: Save a document
+    FE->>API: Send create or update request
+    API->>DB: Persist document metadata and content
+    DB-->>API: Confirm transaction
+    API-)Worker: Emit document.changed event
+    API-->>FE: Return success immediately
+    FE-->>Tech: Show success feedback
+    Worker->>Worker: Extract plain text
+    Worker->>Meili: Update search index
+    Meili-->>Worker: Confirm indexing

@@ -37,15 +37,8 @@ meilisearch.exe
 data.ms/
 
 # AI Agents
-.agent/
 .claude/
 
-# Documentation Artifacts (Generated)
-docs/*.docx
-docs/SmartDoc_Insight_*.md
-
-# Local Dev Files
+# Local Dev Scan Files
 agentshield-*.txt
-generate-test-docs.mjs
-test-docs/
 
