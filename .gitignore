@@ -42,3 +42,8 @@ data.ms/
 # Local Dev Scan Files
 agentshield-*.txt
 
+# Test Artifacts
+test-docs/
+test-screenshots/
+
+
