@@ -30,11 +30,6 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    // Admin has superuser status
-    if (user.role === 'admin' || user.role === 'IT Manager') {
-      return true;
-    }
-
     const { entityType, level } = requirement;
 
     // Resolve entityId from request parameters, body, or query string
@@ -44,9 +39,9 @@ export class PermissionsGuard implements CanActivate {
       request.params?.folderId ||
       request.body?.id ||
       request.body?.documentId ||
-      request.body?.folderId ||
-      request.query?.folderId ||
-      request.query?.documentId;
+      request.query?.documentId ||
+      (entityType === 'folder' ? request.body?.folderId : undefined) ||
+      (entityType === 'folder' ? request.query?.folderId : undefined);
 
     if (!entityId) {
       // If we are creating a folder, check write permission on parentId if provided

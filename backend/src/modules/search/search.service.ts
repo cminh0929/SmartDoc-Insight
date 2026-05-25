@@ -26,6 +26,10 @@ export class SearchService implements OnModuleInit {
     });
   }
 
+  private escapeFilterValue(value: string) {
+    return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
   async onModuleInit() {
     // Initialize index settings
     try {
@@ -42,7 +46,7 @@ export class SearchService implements OnModuleInit {
       this.documentIndex = this.client.index('documents');
       await this.documentIndex.updateSettings({
         searchableAttributes: ['title', 'description'],
-        filterableAttributes: ['folderId', 'ownerId', 'isArchived'],
+        filterableAttributes: ['folderId', 'ownerId', 'isArchived', 'tenantId'],
         sortableAttributes: ['createdAt', 'updatedAt'],
       });
     } catch (error: any) {
@@ -74,9 +78,10 @@ export class SearchService implements OnModuleInit {
         ...filters,
       };
       if (tenantId) {
+        const tenantFilter = `tenantId = "${this.escapeFilterValue(tenantId)}"`;
         meiliFilters.filter = filters?.filter
-          ? `${filters.filter} AND tenantId = ${tenantId}`
-          : `tenantId = ${tenantId}`;
+          ? `${filters.filter} AND ${tenantFilter}`
+          : tenantFilter;
       }
       const result = await this.client
         .index('documents')

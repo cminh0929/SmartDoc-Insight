@@ -130,7 +130,7 @@ export class AuthService {
       .where(eq(users.email, email))
       .limit(1);
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 

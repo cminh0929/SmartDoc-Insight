@@ -223,8 +223,8 @@ export class PermissionsService extends BaseService<typeof permissions> {
       // Cross-Tenant data leakage protection
       if (doc.tenantId !== user.tenantId) return false;
 
-      // Admin role has absolute access within tenant
-      if (user.role === 'admin') return true;
+      // Admin or IT Manager role has absolute access within tenant
+      if (user.role === 'admin' || user.role === 'IT Manager') return true;
 
       // Document owner has absolute admin rights
       if (doc.ownerId === userId) return true;
@@ -255,7 +255,22 @@ export class PermissionsService extends BaseService<typeof permissions> {
         );
       }
     } else {
-      // Check explicit folder permission
+      const folderList = await this.db
+        .select()
+        .from(folders)
+        .where(eq(folders.id, entityId))
+        .limit(1);
+
+      if (folderList.length === 0) return false;
+      const folder = folderList[0];
+
+      // Cross-Tenant data leakage protection
+      if (folder.tenantId !== user.tenantId) return false;
+
+      // Admin or IT Manager role has absolute access within tenant
+      if (user.role === 'admin' || user.role === 'IT Manager') return true;
+
+      // Check explicit folder permission after the tenant boundary is verified
       const explicit = await this.db
         .select()
         .from(permissions)
@@ -270,21 +285,6 @@ export class PermissionsService extends BaseService<typeof permissions> {
       if (explicit.length > 0) {
         return PERMISSION_SCORES[explicit[0].level] >= requiredScore;
       }
-
-      const folderList = await this.db
-        .select()
-        .from(folders)
-        .where(eq(folders.id, entityId))
-        .limit(1);
-
-      if (folderList.length === 0) return false;
-      const folder = folderList[0];
-
-      // Cross-Tenant data leakage protection
-      if (folder.tenantId !== user.tenantId) return false;
-
-      // Admin role has absolute access within tenant
-      if (user.role === 'admin') return true;
 
       // Check inherited parent folder permission
       if (folder.parentId) {

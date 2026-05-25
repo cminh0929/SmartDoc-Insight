@@ -3,8 +3,8 @@
 ## 1. Nhật ký tiến độ (Process Log)
 
 - **Current Status**: DỰ ÁN HOÀN TẤT - PHIÊN BẢN 1.0.0. Hệ thống quản lý tài liệu IT Support Document Insight đã được đóng gói hoàn chỉnh với kiến trúc SaaS (Enterprise Multi-Tenancy), RBAC động, và Full-Text Search qua Meilisearch.
-- **Last Action**: Chốt phiên bản v1.0.0. Cập nhật `package.json` cho cả frontend và backend. Môi trường Production đã sẵn sàng với PM2.
-- **Next Action**: Chuyển sang giai đoạn bảo trì (Maintenance Mode) hoặc phát triển các tính năng mở rộng (v1.x / v2.0) trong tương lai. Lên lịch backup Database định kỳ.
+- **Last Action**: Chốt phiên bản v1.0.0. Tạo tài liệu hướng dẫn chạy dự án trên máy Windows (`TUTORIAL.md`) giải quyết vấn đề cấu hình PATH và cơ sở dữ liệu.
+- **Next Action**: Thiết lập dự án trên máy mới theo hướng dẫn trong `TUTORIAL.md`, khởi chạy Postgres qua Docker và kiểm thử luồng nghiệp vụ cơ bản.
 
 ## 2. Cấu trúc thư mục & Chức năng (Folder & File Details)
 
@@ -34,7 +34,8 @@
 
 ## 4. Trạng thái hạ tầng (Infrastructure Status)
 
-- **Postgres**: Chạy cục bộ (Windows Service: `postgresql-x64-16`).
+- **Postgres**: Chạy qua Docker Container trên Windows (hoặc Windows Service nếu có).
+  - Lệnh khởi chạy nhanh qua Docker: `docker run --name smartdoc-postgres -e POSTGRES_USER=it_support_admin -e POSTGRES_PASSWORD=your_password_here -e POSTGRES_DB=manage_document_db -p 5432:5432 -d postgres:16`
   - DB Name: `manage_document_db`
   - Admin User: `it_support_admin` / `it_support_password` (Đã phân quyền OWNER).
   - Port: `5432`

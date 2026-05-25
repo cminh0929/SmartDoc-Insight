@@ -48,13 +48,13 @@ export class DashboardService {
         count: count(documents.id),
       })
       .from(folders)
-      .leftJoin(documents, sql`${folders.id} = ${documents.folderId}`)
-      .groupBy(folders.name)
-      .limit(5);
+      .leftJoin(documents, sql`${folders.id} = ${documents.folderId}`);
     if (tenantId) {
       categoryQuery.where(eq(folders.tenantId, tenantId));
     }
-    const categoryDistribution = await categoryQuery;
+    const categoryDistribution = await categoryQuery
+      .groupBy(folders.name)
+      .limit(5);
 
     // 5. Recent Activity (latest versions)
     const recentQuery = this.db
@@ -68,13 +68,13 @@ export class DashboardService {
       .innerJoin(
         documentVersions,
         sql`${documents.id} = ${documentVersions.documentId}`,
-      )
-      .orderBy(sql`${documents.updatedAt} DESC`)
-      .limit(5);
+      );
     if (tenantId) {
       recentQuery.where(eq(documents.tenantId, tenantId));
     }
-    const recentActivity = await recentQuery;
+    const recentActivity = await recentQuery
+      .orderBy(sql`${documents.updatedAt} DESC`)
+      .limit(5);
 
     return {
       totalDocuments: docCount.value,
